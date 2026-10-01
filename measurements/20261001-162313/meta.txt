@@ -1,0 +1,4 @@
+commit: 8abb08d (インメモリストア化: SQLite は write-through、読み取りは全てメモリ。docker をやめネイティブ実行、請求額は大会終了時に確定、ID 採番をプロセス内に)
+dirty: 0
+nodes: 1
+note: インメモリ化 (1台) bench の nofile 引き上げ

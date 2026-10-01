@@ -16,7 +16,7 @@ $SSH $BENCH "sudo pkill vmstat; nohup sh -c 'vmstat -t 1 $SECS > /tmp/vmstat.txt
 wait
 # 疎通確認（プールの死んだ接続を捨てる）
 $SSH $ISU1 'curl -sk -o /dev/null -w "warmup /api/me -> %{http_code}\n" --resolve admin.t.isucon.local:443:127.0.0.1 https://admin.t.isucon.local/api/me'
-$SSH $BENCH "sudo prlimit --nofile=1000000:1000000 sudo -u isucon bash -c 'cd /home/isucon/bench && ./bench -target-url https://t.isucon.local -target-addr $ISU1_IP:443 ${BENCH_OPTS:-}'" > "$D/bench.log" 2>&1
+$SSH $BENCH "sudo -u isucon bash -c 'ulimit -n \$(ulimit -Hn); cd /home/isucon/bench && ./bench -target-url https://t.isucon.local -target-addr $ISU1_IP:443 ${BENCH_OPTS:-}'" > "$D/bench.log" 2>&1
 python3 "$ROOT/tools/parse.py" "$D/bench.log" > "$D/score.json"
 {
   echo "commit: $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null) ($(git -C "$ROOT" log -1 --format=%s 2>/dev/null))"

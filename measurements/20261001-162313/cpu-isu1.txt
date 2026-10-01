@@ -1,0 +1,8 @@
+isuports                   26.2
+nginx                      22.7
+mysqld                      3.3
+pidstat                     0.3
+jbd2/nvme0n1p1-8            0.3
+systemd-logind              0.1
+systemd-journal             0.1
+redis-server                0.1
