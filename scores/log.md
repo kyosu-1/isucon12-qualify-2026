@@ -20,3 +20,4 @@
 | 17:57 | 559934 | True | 45(crit 0) | 821af1b | 20261001-175614 | visit_history 書き込みを非同期バッチ化 |
 | 17:59 | 976377 | True | 0(crit 0) | 1851038 | 20261001-175817 | ranking の内訳計測 |
 | 18:02 | 975415 | True | 0(crit 0) | 896fe45 | 20261001-180053 | TLS DynamicRecordSizingDisabled |
+| 18:15 | 968792 | True | 1(crit 0) | 022fc9d | 20261001-181436 | 同一コード + isu3 から isu1:443 への TCP connect 時間を計測 |

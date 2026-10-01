@@ -1,0 +1,32 @@
+{
+ "pass": true,
+ "score": 968792,
+ "plus": 978577,
+ "minus": -9785,
+ "errors": "1(crit 0)",
+ "messages": [
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: テナント内の大会情報取得 Get \"https://wsu-pspwhl-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:wsu-pspwhl-X role:player playerID:X",
+  "1x error: テナントのプレイヤー一覧取得 JSONのdecodeに失敗しました GET /api/organizer/players status N tenant:gxljo-sisrl-X role:organizer playerID:organizer",
+  "1x error: テナントのプレイヤー一覧取得 JSONのdecodeに失敗しました GET /api/organizer/players status N tenant:nie-vuq-X role:organizer playerID:organizer",
+  "1x ERROR load: load-validation: Get \"https://wsu-pspwhl-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:wsu-pspwhl-X role:player playerID:X",
+  "1x Error N (Critical:N)"
+ ],
+ "table": {
+  "GET admin/tenants/billing": 6142,
+  "GET organizer/billing": 4592,
+  "GET organizer/players/list": 4829,
+  "GET player/competition/:c/ranking": 219691,
+  "GET player/competitions": 28550,
+  "GET player/player/:player_name": 525342,
+  "POST admin/tenants/add": 251,
+  "POST organizer/competition/:c/finish": 4638,
+  "POST organizer/competition/:c/score": 4811,
+  "POST organizer/competitions/add": 4815,
+  "POST organizer/player/:player_name/disqualified": 13,
+  "POST organizer/players/add": 294
+ },
+ "workers": ""
+}

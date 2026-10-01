@@ -1,0 +1,8 @@
+isuports                  139.3
+python3                     0.9
+pidstat                     0.4
+systemd-journal             0.1
+rcu_sched                   0.1
+kworker/u4:2-events_power_efficient    0.1
+ksoftirqd/1                 0.1
+ksoftirqd/0                 0.1

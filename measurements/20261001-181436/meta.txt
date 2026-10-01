@@ -1,0 +1,4 @@
+commit: 022fc9d (bench: 975415 DynamicRecordSizingDisabled（変化なし。リクエスト数は 3 回連続でほぼ同一 = isu2/3 はベンチのペースに追従済み）)
+dirty: 1
+nodes: 1 2 3
+note: 同一コード + isu3 から isu1:443 への TCP connect 時間を計測
