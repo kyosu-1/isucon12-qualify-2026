@@ -10,3 +10,4 @@
 | 17:33 | 0 | False | 100(crit 0) | 580fdb7 | 20261001-173323 | TLS 直終端 (nginx stream SNI hash → 3台 :8443) |
 | 17:34 | 0 | False | 285(crit 0) | 06e2403 | 20261001-173415 | TLS 直終端 + worker_connections 100000 |
 | 17:36 | 828537 | True | 0(crit 0) | 4cc3f7c | 20261001-173518 | ベンチ機 port_range/tw_reuse 拡張 + pprof(isu2) |
+| 17:40 | 34844 | True | 96(crit 0) | 91d5d3a | 20261001-173925 | JSON 手書き + rank 事前 JSON 化 + token key + GOGC=200 |

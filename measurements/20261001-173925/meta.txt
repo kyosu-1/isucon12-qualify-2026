@@ -1,0 +1,4 @@
+commit: 91d5d3a (ホットな 3 API (player / ranking / competitions) の JSON を手書きで組み立て、ランキングは入稿時に JSON 化。JWT キャッシュのキーを署名末尾 32 文字に。GOGC=200)
+dirty: 0
+nodes: 1 2 3
+note: JSON 手書き + rank 事前 JSON 化 + token key + GOGC=200

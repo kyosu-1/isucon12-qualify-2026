@@ -1,0 +1,54 @@
+File: isuports
+Build ID: 863ed5700e29544baee2600a2b9ff36e46763459
+Type: cpu
+Time: 2026-10-01 17:40:05 JST
+Duration: 30s, Total samples = 44.85s (149.50%)
+Showing nodes accounting for 32.04s, 71.44% of 44.85s total
+Dropped 833 nodes (cum <= 0.22s)
+Showing top 45 nodes out of 276
+      flat  flat%   sum%        cum   cum%
+        9s 20.07% 20.07%         9s 20.07%  crypto/internal/fips140/bigmod.addMulVVW1024
+     3.73s  8.32% 28.38%      3.73s  8.32%  internal/runtime/syscall.Syscall6
+     2.71s  6.04% 34.43%     14.38s 32.06%  crypto/internal/fips140/bigmod.(*Nat).montgomeryMul
+     1.42s  3.17% 37.59%      1.42s  3.17%  crypto/internal/fips140/bigmod.(*Nat).assign (inline)
+     1.33s  2.97% 40.56%      3.16s  7.05%  runtime.selectgo
+     1.03s  2.30% 42.85%      1.03s  2.30%  runtime.memmove
+     0.93s  2.07% 44.93%      2.30s  5.13%  runtime.mapaccess2_faststr
+     0.88s  1.96% 46.89%      0.98s  2.19%  runtime.cgocall
+     0.77s  1.72% 48.61%      0.77s  1.72%  internal/runtime/maps.ctrlGroup.matchH2 (inline)
+     0.70s  1.56% 50.17%      0.78s  1.74%  crypto/internal/fips140/bigmod.(*Nat).shiftIn
+     0.70s  1.56% 51.73%      0.70s  1.56%  runtime.memclrNoHeapPointers
+     0.67s  1.49% 53.22%      0.67s  1.49%  crypto/internal/fips140/bigmod.addMulVVW2048
+     0.55s  1.23% 54.45%      0.55s  1.23%  memeqbody
+     0.54s  1.20% 55.65%      0.54s  1.20%  crypto/internal/fips140/bigmod.(*Nat).sub (inline)
+     0.41s  0.91% 56.57%      0.41s  0.91%  crypto/internal/fips140/edwards25519/field.feMul
+     0.41s  0.91% 57.48%      0.73s  1.63%  runtime.sellock
+     0.41s  0.91% 58.39%      0.44s  0.98%  runtime.unlock2
+     0.39s  0.87% 59.26%      0.39s  0.87%  runtime.lock2
+     0.37s  0.82% 60.09%      3.53s  7.87%  github.com/isucon/isucon12-qualify/webapp/go.playerHandler
+     0.37s  0.82% 60.91%      0.37s  0.82%  internal/runtime/atomic.(*Uint32).CompareAndSwap (inline)
+     0.36s   0.8% 61.72%      0.41s  0.91%  runtime.findObject
+     0.35s  0.78% 62.50%      0.35s  0.78%  crypto/internal/fips140/sha256.blockAVX2
+     0.34s  0.76% 63.26%      0.34s  0.76%  crypto/internal/fips140/edwards25519/field.feSquare
+     0.31s  0.69% 63.95%      0.31s  0.69%  crypto/internal/fips140/aes/gcm.gcmAesEnc
+     0.29s  0.65% 64.59%      0.29s  0.65%  aeshashbody
+     0.28s  0.62% 65.22%      5.26s 11.73%  net/http.(*http2serverConn).serve
+     0.26s  0.58% 65.80%      0.26s  0.58%  runtime.duffzero
+     0.26s  0.58% 66.38%      0.80s  1.78%  runtime.scanobject
+     0.25s  0.56% 66.93%      0.46s  1.03%  internal/sync.(*HashTrieMap[go.shape.interface {},go.shape.interface {}]).Load
+     0.25s  0.56% 67.49%      0.26s  0.58%  runtime.(*mspan).writeHeapBitsSmall
+     0.20s  0.45% 67.94%      0.25s  0.56%  runtime.step
+     0.18s   0.4% 68.34%      1.20s  2.68%  runtime.mallocgcSmallScanNoHeader
+     0.16s  0.36% 68.70%      0.43s  0.96%  runtime.casgstatus
+     0.15s  0.33% 69.03%      0.49s  1.09%  runtime.pcvalue
+     0.14s  0.31% 69.34%      0.42s  0.94%  crypto/internal/fips140/bigmod.(*Nat).reset (inline)
+     0.13s  0.29% 69.63%      0.95s  2.12%  runtime.schedule
+     0.11s  0.25% 69.88%      3.78s  8.43%  crypto/tls.(*Conn).Write
+     0.10s  0.22% 70.10%      1.54s  3.43%  runtime.newobject
+     0.09s   0.2% 70.30%      0.58s  1.29%  crypto/internal/fips140/aes/gcm.(*GCMForTLS13).Seal
+     0.09s   0.2% 70.50%      0.23s  0.51%  runtime.(*waitq).dequeue (inline)
+     0.09s   0.2% 70.70%      2.39s  5.33%  runtime.mallocgc
+     0.09s   0.2% 70.90%      0.26s  0.58%  runtime.newproc1
+     0.08s  0.18% 71.08%      3.07s  6.85%  net/http.(*http2Framer).ReadFrame
+     0.08s  0.18% 71.26%      0.36s   0.8%  runtime.(*stkframe).getStackMap
+     0.08s  0.18% 71.44%      0.32s  0.71%  runtime.(*unwinder).resolveInternal
