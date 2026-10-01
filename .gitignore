@@ -1,0 +1,33 @@
+# --- ビルド成果物（ローカルでクロスコンパイルして配る。git には入れない） ---
+build/
+*.test
+# サーバーでビルドする場合はアプリのバイナリ名も（例）
+# webapp/golang/app
+
+# --- 環境依存（環境を作り直すたびに変わる） ---
+hosts.generated.mk
+.env.local
+
+# --- 計測の巨大な生ログ（要約は measurements/ にコミットする） ---
+measurements/**/raw/
+measurements/**/.*.txt
+*.log
+!.gitkeep
+
+# --- 大きい / 再生成可能なデータ ---
+*.sql.bz2
+*.sql.gz
+*.dump
+# DB から書き出した画像の実体（サーバー側にだけ存在する。make dump-images で再生成）
+# webapp/public/image/
+
+# --- 秘密情報（AMI 由来でも公開リポジトリには入れない。サーバー側に既にあるので deploy には不要） ---
+etc/*/nginx/tls/*.key
+etc/*/mysql/debian.cnf
+
+# --- OS ---
+.DS_Store
+
+etc/*/nginx/tls/
+webapp/go/isuports
+webapp/sql/admin/90_data.sql
