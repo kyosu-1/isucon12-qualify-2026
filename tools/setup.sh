@@ -15,5 +15,9 @@ done
 $SSH $BENCH 'sudo systemctl disable --now isuports nginx mysql redis-server blackauth unattended-upgrades apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1; echo "[bench] services stopped"
   # ベンチは参加者ごとに新規 TLS 接続を張っては閉じる。既定のポート範囲 (約 2.8 万) だと TIME_WAIT で枯渇して
   # connect: cannot assign requested address になる（サーバーが速くなると 35 秒で発生）
-  printf "net.ipv4.ip_local_port_range = 1024 65535\nnet.ipv4.tcp_tw_reuse = 1\n" | sudo tee /etc/sysctl.d/99-bench.conf >/dev/null; sudo sysctl --system >/dev/null 2>&1; sysctl net.ipv4.ip_local_port_range net.ipv4.tcp_tw_reuse' &
+  # tcp_tw_reuse=1 は使わない: 5.19 カーネルは FIN_WAIT2 の tw ソケットのポートも 1 秒で再利用するので、サーバー側がまだ閉じていない
+  # 接続と同じ 4-tuple で SYN を送ってしまい、challenge ACK → RST → SYN 再送 1 秒待ちになる（isu1 で TCPSYNChallenge 100〜500/回。
+  # 負荷終了の瞬間に dial 中だった ranking が i/o timeout としてエラー計上され、1 件 1% の減点になっていた）。
+  # 代わりに TIME_WAIT を持たせる数を絞ってポートを早く空ける（ポートは巡回して割り当てられるので、再利用は数十秒後になる）
+  printf "net.ipv4.ip_local_port_range = 1024 65535\nnet.ipv4.tcp_tw_reuse = 2\nnet.ipv4.tcp_max_tw_buckets = 4096\n" | sudo tee /etc/sysctl.d/99-bench.conf >/dev/null; sudo sysctl --system >/dev/null 2>&1; sysctl net.ipv4.ip_local_port_range net.ipv4.tcp_tw_reuse net.ipv4.tcp_max_tw_buckets' &
 wait
