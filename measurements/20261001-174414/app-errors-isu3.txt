@@ -1,0 +1,4 @@
+     51 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/player/competition/:competition_id/ranking: httpN: stream closed"}
+      6 N/N/N N:N:N http: TLS handshake error from N.N.N.N:N: EOF
+      2 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/organizer/players: httpN: stream closed"}
+      1 N/N/N N:N:N httpN: server: error reading preface from client N.N.N.N:N: read tcp N.N.N.N:N->N.N.N.N:N: read: connection reset by peer

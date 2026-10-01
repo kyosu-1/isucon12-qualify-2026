@@ -1,0 +1,8 @@
+isuports                  100.0
+nginx                      69.9
+mysqld                      6.5
+pidstat                     0.6
+ksoftirqd/1                 0.6
+ksoftirqd/0                 0.6
+rcu_sched                   0.1
+jbd2/nvme0n1p1-8            0.1

@@ -1,0 +1,4 @@
+commit: 08d0b24 (nginx stream: weight 3:4:4（isu1 は nginx 73% + mysql を抱えて busy 95%、isu2 80% / isu3 87%）)
+dirty: 0
+nodes: 1 2 3
+note: stream weight 3:4:4

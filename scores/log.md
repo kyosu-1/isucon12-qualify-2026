@@ -12,3 +12,4 @@
 | 17:36 | 828537 | True | 0(crit 0) | 4cc3f7c | 20261001-173518 | ベンチ機 port_range/tw_reuse 拡張 + pprof(isu2) |
 | 17:40 | 34844 | True | 96(crit 0) | 91d5d3a | 20261001-173925 | JSON 手書き + rank 事前 JSON 化 + token key + GOGC=200 |
 | 17:43 | 875796 | True | 0(crit 0) | 023ba67 | 20261001-174155 | 同一コード再計測（終了時 dial timeout の再現性確認）+ ベンチ機の接続数採取 |
+| 17:45 | 802508 | True | 0(crit 0) | 08d0b24 | 20261001-174414 | stream weight 3:4:4 |
