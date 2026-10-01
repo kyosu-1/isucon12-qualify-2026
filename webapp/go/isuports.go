@@ -705,21 +705,10 @@ func playersAddHandler(c echo.Context) error {
 	pds := make([]PlayerDetail, 0, len(displayNames))
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	tx, err := t.db.Begin()
-	if err != nil {
-		return fmt.Errorf("error begin: %w", err)
-	}
-	defer tx.Rollback()
 	now := time.Now().Unix()
 	added := make([]*playerT, 0, len(displayNames))
 	for _, displayName := range displayNames {
 		id := dispenseID()
-		if _, err := tx.Exec(
-			"INSERT INTO player (id, tenant_id, display_name, is_disqualified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-			id, v.tenantID, displayName, false, now, now,
-		); err != nil {
-			return fmt.Errorf("error Insert player at tenantDB: id=%s, %w", id, err)
-		}
 		added = append(added, newPlayer(id, displayName, false, now))
 		pds = append(pds, PlayerDetail{
 			ID:             id,
@@ -727,9 +716,18 @@ func playersAddHandler(c echo.Context) error {
 			IsDisqualified: false,
 		})
 	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("error commit: %w", err)
-	}
+	tenantID := v.tenantID
+	t.enqueue(func(tx *sql.Tx) error {
+		for _, p := range added {
+			if _, err := tx.Exec(
+				"INSERT INTO player (id, tenant_id, display_name, is_disqualified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+				p.ID, tenantID, p.DisplayName, false, now, now,
+			); err != nil {
+				return fmt.Errorf("insert player %s: %w", p.ID, err)
+			}
+		}
+		return nil
+	})
 	for _, p := range added {
 		t.players[p.ID] = p
 		t.playerList = append(t.playerList, p)
@@ -772,12 +770,10 @@ func playerDisqualifiedHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, "player not found")
 	}
 	now := time.Now().Unix()
-	if _, err := t.db.Exec(
-		"UPDATE player SET is_disqualified = ?, updated_at = ? WHERE id = ?",
-		true, now, playerID,
-	); err != nil {
-		return fmt.Errorf("error Update player: id=%s, %w", playerID, err)
-	}
+	t.enqueue(func(tx *sql.Tx) error {
+		_, err := tx.Exec("UPDATE player SET is_disqualified = ?, updated_at = ? WHERE id = ?", true, now, playerID)
+		return err
+	})
 	p.Disq = true
 	p.cache.Store(nil)
 
@@ -823,12 +819,14 @@ func competitionsAddHandler(c echo.Context) error {
 	id := dispenseID()
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	if _, err := t.db.Exec(
-		"INSERT INTO competition (id, tenant_id, title, finished_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-		id, v.tenantID, title, sql.NullInt64{}, now, now,
-	); err != nil {
-		return fmt.Errorf("error Insert competition: id=%s, tenant_id=%d, %w", id, v.tenantID, err)
-	}
+	tenantID := v.tenantID
+	t.enqueue(func(tx *sql.Tx) error {
+		_, err := tx.Exec(
+			"INSERT INTO competition (id, tenant_id, title, finished_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+			id, tenantID, title, sql.NullInt64{}, now, now,
+		)
+		return err
+	})
 	comp := &compT{ID: id, Title: title, CreatedAt: now, idJSON: jsonStr(id), titleJSON: jsonStr(title), scores: map[string]scoreT{}, visitors: map[string]struct{}{}}
 	t.comps[id] = comp
 	t.compList = append(t.compList, comp)
@@ -885,23 +883,18 @@ func competitionFinishHandler(c echo.Context) error {
 			visitorCount++
 		}
 	}
-	tx, err := t.db.Begin()
-	if err != nil {
-		return fmt.Errorf("error begin: %w", err)
-	}
-	defer tx.Rollback()
-	if _, err := tx.Exec("UPDATE competition SET finished_at = ?, updated_at = ? WHERE id = ?", now, now, id); err != nil {
-		return fmt.Errorf("error Update competition: id=%s, %w", id, err)
-	}
-	if _, err := tx.Exec("INSERT OR REPLACE INTO billing_report (competition_id, player_count, visitor_count) VALUES (?, ?, ?)", id, playerCount, visitorCount); err != nil {
-		return fmt.Errorf("error Insert billing_report: id=%s, %w", id, err)
-	}
-	if _, err := tx.Exec("DELETE FROM visit_history WHERE competition_id = ?", id); err != nil {
-		return fmt.Errorf("error Delete visit_history: id=%s, %w", id, err)
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("error commit: %w", err)
-	}
+	t.enqueue(func(tx *sql.Tx) error {
+		if _, err := tx.Exec("UPDATE competition SET finished_at = ?, updated_at = ? WHERE id = ?", now, now, id); err != nil {
+			return fmt.Errorf("update competition %s: %w", id, err)
+		}
+		if _, err := tx.Exec("INSERT OR REPLACE INTO billing_report (competition_id, player_count, visitor_count) VALUES (?, ?, ?)", id, playerCount, visitorCount); err != nil {
+			return fmt.Errorf("insert billing_report %s: %w", id, err)
+		}
+		if _, err := tx.Exec("DELETE FROM visit_history WHERE competition_id = ?", id); err != nil {
+			return fmt.Errorf("delete visit_history %s: %w", id, err)
+		}
+		return nil
+	})
 	if yen := 100*playerCount + 10*visitorCount; yen > 0 {
 		if _, err := adminDB.ExecContext(ctx,
 			"INSERT INTO tenant_billing (tenant_id, billing) VALUES (?, ?) ON DUPLICATE KEY UPDATE billing = billing + VALUES(billing)",
@@ -1022,28 +1015,23 @@ func competitionScoreHandler(c echo.Context) error {
 		scores[row.playerID] = scoreT{Score: score, RowNum: int64(i + 1)}
 	}
 
-	tx, err := t.db.Begin()
-	if err != nil {
-		return fmt.Errorf("error begin: %w", err)
-	}
-	defer tx.Rollback()
-	if _, err := tx.Exec("DELETE FROM player_score WHERE competition_id = ?", competitionID); err != nil {
-		return fmt.Errorf("error Delete player_score: competitionID=%s, %w", competitionID, err)
-	}
-	ins, err := tx.Prepare("INSERT INTO player_score (competition_id, player_id, score, row_num) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return fmt.Errorf("error prepare: %w", err)
-	}
-	for pid, s := range scores {
-		if _, err := ins.Exec(competitionID, pid, s.Score, s.RowNum); err != nil {
-			ins.Close()
-			return fmt.Errorf("error Insert player_score: playerID=%s, competitionID=%s, %w", pid, competitionID, err)
+	// scores は以後書き換えない（次の入稿では新しい map に差し替える）ので、そのまま書き込みジョブに渡せる
+	t.enqueue(func(tx *sql.Tx) error {
+		if _, err := tx.Exec("DELETE FROM player_score WHERE competition_id = ?", competitionID); err != nil {
+			return fmt.Errorf("delete player_score %s: %w", competitionID, err)
 		}
-	}
-	ins.Close()
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("error commit: %w", err)
-	}
+		ins, err := tx.Prepare("INSERT INTO player_score (competition_id, player_id, score, row_num) VALUES (?, ?, ?, ?)")
+		if err != nil {
+			return err
+		}
+		defer ins.Close()
+		for pid, s := range scores {
+			if _, err := ins.Exec(competitionID, pid, s.Score, s.RowNum); err != nil {
+				return fmt.Errorf("insert player_score %s/%s: %w", competitionID, pid, err)
+			}
+		}
+		return nil
+	})
 	comp.scores = scores
 	t.scoreVer++
 	t.rebuildRanks(comp)
@@ -1227,8 +1215,12 @@ func competitionRankingHandler(c echo.Context) error {
 			comp.visitors[v.playerID] = struct{}{}
 		}
 		comp.visitMu.Unlock()
-		if !seen && !t.closed {
-			t.visitCh <- visitRec{competitionID, v.playerID, time.Now().Unix()}
+		if !seen {
+			playerID, now := v.playerID, time.Now().Unix()
+			t.enqueue(func(tx *sql.Tx) error {
+				_, err := tx.Exec("INSERT INTO visit_history (competition_id, player_id, created_at) VALUES (?, ?, ?)", competitionID, playerID, now)
+				return err
+			})
 		}
 	}
 

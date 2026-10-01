@@ -70,10 +70,14 @@ type playerT struct {
 	cache atomic.Pointer[playerCache]
 }
 
-type visitRec struct {
-	compID    string
-	playerID  string
-	createdAt int64
+type writeJob func(tx *sql.Tx) error
+
+// SQLite への書き込みをキューに積む。t.mu を (R)Lock した状態で呼ぶ（メモリの更新順と書き込み順を揃える）
+func (t *tenantT) enqueue(job writeJob) {
+	if t.closed {
+		return
+	}
+	t.writeCh <- job
 }
 
 type playerCache struct {
@@ -118,10 +122,11 @@ type tenantT struct {
 	reqs     int64 // 計測用: このテナントへのリクエスト数
 	scoreVer int64 // スコア入稿のたびに増える（mu で保護）
 
-	// 閲覧履歴の SQLite 書き込みは非同期にまとめて行う（メモリの visitors が正。ranking のレスポンスを待たせない）
-	visitCh   chan visitRec
-	visitDone chan struct{}
-	closed    bool // mu で保護。true になったら visitCh に送らない
+	// SQLite への書き込みは全て非同期（メモリが正）。テナントごとに 1 本のキューで順序を保ち、まとめて 1 トランザクションで書く。
+	// 停止時 (SIGTERM) と initialize 時に書き切る
+	writeCh   chan writeJob
+	writeDone chan struct{}
+	closed    bool // mu で保護。true になったら writeCh に送らない
 
 	mu sync.RWMutex
 	id int64
@@ -179,10 +184,10 @@ func resetTenants() {
 	for _, t := range tenants {
 		t.mu.Lock()
 		t.closed = true
-		if t.visitCh != nil {
-			close(t.visitCh)
-			<-t.visitDone // 残りの閲覧履歴を書き切るまで待つ
-			t.visitCh = nil
+		if t.writeCh != nil {
+			close(t.writeCh)
+			<-t.writeDone // 残りを書き切るまで待つ
+			t.writeCh = nil
 		}
 		if t.db != nil {
 			t.db.Close()
@@ -293,144 +298,40 @@ func (t *tenantT) load() error {
 	for _, c := range t.compList {
 		t.rebuildRanks(c)
 	}
-	t.visitCh = make(chan visitRec, 8192)
-	t.visitDone = make(chan struct{})
-	go t.visitWriter(t.visitCh, t.visitDone, db)
+	t.writeCh = make(chan writeJob, 8192)
+	t.writeDone = make(chan struct{})
+	go t.writer(t.writeCh, t.writeDone, db)
 	return nil
 }
 
-// 閲覧履歴をまとめて SQLite に書く。チャネルが閉じられたら残りを書いて終わる
-func (t *tenantT) visitWriter(ch chan visitRec, done chan struct{}, db *sql.DB) {
+// キューの書き込みを順に実行する。溜まっている分は 1 トランザクションにまとめる。チャネルが閉じられたら残りを書いて終わる
+func (t *tenantT) writer(ch chan writeJob, done chan struct{}, db *sql.DB) {
 	defer close(done)
-	batch := make([]visitRec, 0, 256)
 	for first := range ch {
-		batch = append(batch[:0], first)
+		tx, err := db.Begin()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "tenant %d: begin: %v\n", t.id, err)
+			continue
+		}
+		if err := first(tx); err != nil {
+			fmt.Fprintf(os.Stderr, "tenant %d: write: %v\n", t.id, err)
+		}
 	drain:
-		for len(batch) < 2000 {
+		for n := 1; n < 2000; n++ {
 			select {
-			case r, ok := <-ch:
+			case job, ok := <-ch:
 				if !ok {
 					break drain
 				}
-				batch = append(batch, r)
+				if err := job(tx); err != nil {
+					fmt.Fprintf(os.Stderr, "tenant %d: write: %v\n", t.id, err)
+				}
 			default:
 				break drain
 			}
 		}
-		tx, err := db.Begin()
-		if err != nil {
-			continue
-		}
-		st, err := tx.Prepare("INSERT INTO visit_history (competition_id, player_id, created_at) VALUES (?, ?, ?)")
-		if err != nil {
-			tx.Rollback()
-			continue
-		}
-		for _, r := range batch {
-			st.Exec(r.compID, r.playerID, r.createdAt)
-		}
-		st.Close()
-		tx.Commit()
-	}
-}
-
-// ランキングを作り直す（score 降順、同点は row_num 昇順）
-func (t *tenantT) rebuildRanks(c *compT) {
-	type rk struct {
-		score, rowNum int64
-		p             *playerT
-		pid           string
-	}
-	ranks := make([]rk, 0, len(c.scores))
-	for pid, s := range c.scores {
-		ranks = append(ranks, rk{score: s.Score, rowNum: s.RowNum, p: t.players[pid], pid: pid})
-	}
-	sort.Slice(ranks, func(i, j int) bool {
-		if ranks[i].score == ranks[j].score {
-			return ranks[i].rowNum < ranks[j].rowNum
-		}
-		return ranks[i].score > ranks[j].score
-	})
-	buf := make([]byte, 0, len(ranks)*96)
-	off := make([]int32, 0, len(ranks)+1)
-	for i, r := range ranks {
-		off = append(off, int32(len(buf)))
-		buf = append(buf, `{"rank":`...)
-		buf = strconv.AppendInt(buf, int64(i+1), 10)
-		buf = append(buf, `,"score":`...)
-		buf = strconv.AppendInt(buf, r.score, 10)
-		buf = append(buf, `,"player_id":`...)
-		if r.p != nil {
-			buf = append(buf, r.p.idJSON...)
-			buf = append(buf, `,"player_display_name":`...)
-			buf = append(buf, r.p.nameJSON...)
-		} else {
-			buf = append(buf, jsonStr(r.pid)...)
-			buf = append(buf, `,"player_display_name":""`...)
-		}
-		buf = append(buf, '}', ',')
-	}
-	off = append(off, int32(len(buf)))
-	c.rankBuf, c.rankOff = buf, off
-}
-
-func (t *tenantT) compsDesc() []*compT {
-	if d := t.compDesc; d != nil {
-		return d
-	}
-	d := make([]*compT, len(t.compList))
-	copy(d, t.compList)
-	sort.SliceStable(d, func(i, j int) bool { return d[i].CreatedAt > d[j].CreatedAt })
-	t.compDesc = d
-	return d
-}
-
-func (t *tenantT) playersDesc() []*playerT {
-	if d := t.playerDesc; d != nil {
-		return d
-	}
-	d := make([]*playerT, len(t.playerList))
-	copy(d, t.playerList)
-	sort.SliceStable(d, func(i, j int) bool { return d[i].CreatedAt > d[j].CreatedAt })
-	t.playerDesc = d
-	return d
-}
-
-func (c *compT) report() BillingReport {
-	r := BillingReport{CompetitionID: c.ID, CompetitionTitle: c.Title}
-	if c.Finished {
-		r.PlayerCount = c.playerCount
-		r.VisitorCount = c.visitorCount
-		r.BillingPlayerYen = 100 * c.playerCount
-		r.BillingVisitorYen = 10 * c.visitorCount
-		r.BillingYen = r.BillingPlayerYen + r.BillingVisitorYen
-	}
-	return r
-}
-
-// initial_data_v2 を tenant_db にコピーする（initialize 用）
-func restoreTenantDBs() error {
-	dir := tenantDBDir()
-	old, _ := filepath.Glob(filepath.Join(dir, "*.db*"))
-	for _, f := range old {
-		os.Remove(f)
-	}
-	src := getEnv("ISUCON_INITIAL_DATA_DIR", "../../initial_data_v2")
-	files, err := filepath.Glob(filepath.Join(src, "*.db"))
-	if err != nil {
-		return err
-	}
-	if len(files) == 0 {
-		return fmt.Errorf("no initial data in %s (run: isuports migrate)", src)
-	}
-	for _, f := range files {
-		b, err := os.ReadFile(f)
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(dir, filepath.Base(f)), b, 0644); err != nil {
-			return err
+		if err := tx.Commit(); err != nil {
+			fmt.Fprintf(os.Stderr, "tenant %d: commit: %v\n", t.id, err)
 		}
 	}
-	return nil
 }
