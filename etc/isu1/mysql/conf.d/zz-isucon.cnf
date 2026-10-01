@@ -1,0 +1,9 @@
+# 値の根拠は isucon-tools/docs/04-middleware.md。この問題では MySQL の仕事は tenant / tenant_billing だけ
+[mysqld]
+slow_query_log      = 0
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time     = 0
+skip_log_bin
+innodb_flush_log_at_trx_commit = 2
+max_connections = 1024
+bind-address = 0.0.0.0

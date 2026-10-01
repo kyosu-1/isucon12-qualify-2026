@@ -1,0 +1,4 @@
+commit: 4f6aa4c (baseline: 初期状態（AMI から取り込み）+ 計測ツール)
+dirty: 15
+nodes: 1
+note: インメモリ化+ネイティブ実行 (1台)
