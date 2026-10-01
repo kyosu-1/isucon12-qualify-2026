@@ -1,0 +1,4 @@
+commit: da9b581 (bench: 256633 インメモリ化 (1台)。ベンチ機 busy 95% で頭打ち)
+dirty: 6
+nodes: 1 2 3
+note: 3台構成 (nginx hash $host, isu1=nginx+mysql+app, isu2/3=app)

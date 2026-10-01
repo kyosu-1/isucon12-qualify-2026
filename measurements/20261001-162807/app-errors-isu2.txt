@@ -1,0 +1,1 @@
+      1 error during connect: Get "http://%NFvar%NFrun%NFdocker.sock/vN.N/containers/X/json": read unix @->/run/docker.sock: read: connection reset by peer

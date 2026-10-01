@@ -3,3 +3,4 @@
 | 16:22 | 0 | False | 91(crit 1) | 4f6aa4c | 20261001-162246 | インメモリ化+ネイティブ実行 (1台) |
 | 16:23 | 0 | False | 94(crit 1) | 8abb08d | 20261001-162313 | インメモリ化 (1台) bench の nofile 引き上げ |
 | 16:24 | 256633 | True | 0(crit 0) | 8abb08d | 20261001-162336 | インメモリ化 (1台) bench nofile=1048576 |
+| 16:29 | 259537 | True | 0(crit 0) | da9b581 | 20261001-162807 | 3台構成 (nginx hash $host, isu1=nginx+mysql+app, isu2/3=app) |

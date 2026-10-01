@@ -26,14 +26,15 @@ deploy_node() {
     sudo install -o isucon -g isucon -m 644 $D/home/env.sh /home/isucon/env.sh
     sync_file $D/systemd/isuports.service /etc/systemd/system/isuports.service && sudo systemctl daemon-reload
     if [ -f $D/sysctl.d/99-isucon.conf ] && sync_file $D/sysctl.d/99-isucon.conf /etc/sysctl.d/99-isucon.conf; then sudo sysctl --system >/dev/null 2>&1 || true; fi
+    sudo systemctl disable --now docker docker.socket containerd redis-server >/dev/null 2>&1
     for s in mysql nginx isuports; do
       if has $s; then sudo systemctl enable $s >/dev/null 2>&1; else sudo systemctl disable --now $s >/dev/null 2>&1; fi
     done
     if has mysql; then
-      if sync_file $D/mysql/conf.d/zz-isucon.cnf /etc/mysql/conf.d/zz-isucon.cnf; then echo "mysql: restart"; sudo systemctl restart mysql; else sudo systemctl start mysql; fi
+      if sudo rm -f /etc/mysql/conf.d/zz-isucon.cnf; sync_file $D/mysql/mysql.conf.d/zz-isucon.cnf /etc/mysql/mysql.conf.d/zz-isucon.cnf; then echo "mysql: restart"; sudo systemctl restart mysql; else sudo systemctl start mysql; fi
     fi
     if has nginx; then
-      ch=0
+      ch=0; sudo systemctl is-active -q blackauth || sudo systemctl enable --now blackauth >/dev/null 2>&1
       sync_file $D/nginx/nginx.conf /etc/nginx/nginx.conf && ch=1
       sync_file $D/nginx/sites-available/isuports.conf /etc/nginx/sites-available/isuports.conf && ch=1
       sudo nginx -t 2>&1 | grep -v "syntax is ok" | grep -v "test is successful"
