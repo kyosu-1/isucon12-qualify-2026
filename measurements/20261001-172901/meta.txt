@@ -1,0 +1,4 @@
+commit: 3a37980 (bench: 229415 再起動試験 pass（ベンチ機飽和由来の dial timeout 11 件）)
+dirty: 1
+nodes: 1 2 3
+note: ベンチ機 c5.4xlarge に変更（コード同一）

@@ -1,0 +1,8 @@
+isuports                   27.0
+pidstat                     0.3
+ksoftirqd/1                 0.1
+ksoftirqd/0                 0.1
+vmstat                      0.0
+rcu_sched                   0.0
+kworker/u4:4-events_power_efficient    0.0
+kworker/u4:2-events_unbound    0.0
