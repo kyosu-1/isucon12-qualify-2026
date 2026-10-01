@@ -1,0 +1,4 @@
+commit: 8b2f06a (fix: store.go の後半（rebuildRanks 以降）をパッチで消していたのを復元。直前の bench 129418 は旧バイナリ（ビルド失敗）の結果)
+dirty: 0
+nodes: 1 2 3
+note: SQLite 書き込みを全て非同期キュー化（再）
