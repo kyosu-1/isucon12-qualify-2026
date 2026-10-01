@@ -1,0 +1,4 @@
+commit: 8ea9698 (計測: score 入稿の内訳（CSV 読み込み / ロック取得 / 行数）)
+dirty: 0
+nodes: 1 2 3
+note: score 入稿の内訳計測
