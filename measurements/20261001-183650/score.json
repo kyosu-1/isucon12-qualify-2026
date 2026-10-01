@@ -1,0 +1,37 @@
+{
+ "pass": true,
+ "score": 1019424,
+ "plus": 1073077,
+ "minus": -53653,
+ "errors": "5(crit 0)",
+ "messages": [
+  "2x error: テナント内の大会情報取得 Get \"https://xyw-nri-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:xyw-nri-X role:player playerID:X",
+  "2x error: テナント内の大会情報取得 Get \"https://il-mfrno-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:il-mfrno-X role:player playerID:X",
+  "2x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:rir-iu-X role:player playerID:X competitionID:X rankAfter:",
+  "2x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:pb-gqz-X role:player playerID:X competitionID:X rankAfter:",
+  "2x ERROR load: load-validation: Get \"https://xyw-nri-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:xyw-nri-X role:player playerID:X",
+  "2x ERROR load: load-validation: Get \"https://il-mfrno-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:il-mfrno-X role:player playerID:X",
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: テナント内の大会情報取得 Get \"https://abzd-yqpl-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:abzd-yqpl-X role:player playerID:X",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:gs-xxhl-X role:player playerID:X competitionID:X rankAfter:",
+  "1x ERROR load: load-validation: Get \"https://abzd-yqpl-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:abzd-yqpl-X role:player playerID:X",
+  "1x Error N (Critical:N)"
+ ],
+ "table": {
+  "GET admin/tenants/billing": 6329,
+  "GET organizer/billing": 4983,
+  "GET organizer/players/list": 5238,
+  "GET player/competition/:c/ranking": 240866,
+  "GET player/competitions": 30913,
+  "GET player/player/:player_name": 579197,
+  "POST admin/tenants/add": 256,
+  "POST organizer/competition/:c/finish": 5024,
+  "POST organizer/competition/:c/score": 5248,
+  "POST organizer/competitions/add": 5241,
+  "POST organizer/player/:player_name/disqualified": 14,
+  "POST organizer/players/add": 300
+ },
+ "workers": ""
+}

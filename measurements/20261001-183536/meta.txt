@@ -1,0 +1,4 @@
+commit: bcb6e47 (ベンチ機: tcp_tw_reuse をやめ tcp_max_tw_buckets=4096 に（FIN_WAIT2 のポート再利用による SYN challenge → 1 秒の SYN 再送待ちを無くす）)
+dirty: 0
+nodes: 1 2 3
+note: ベンチ機 tw_reuse=2 + max_tw_buckets=4096 (1)
