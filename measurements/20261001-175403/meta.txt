@@ -1,0 +1,4 @@
+commit: 5f113ff (計測: ルート別のリクエスト数・処理時間を /internal/stats?routes=1 で取れるようにする（nginx を L4 にして alp が使えなくなったため）)
+dirty: 0
+nodes: 1 2 3
+note: ルート別計測を追加 (weight 1:2:2 のまま)
