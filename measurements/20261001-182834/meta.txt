@@ -1,0 +1,4 @@
+commit: 6cb2863 (bench: 713230（終了時 dial timeout 34 件）。score 入稿 18ms は全て「リクエストボディの到着待ち」= ベンチ側)
+dirty: 0
+nodes: 1 2 3
+note: 同一コード + isu1 で SYN を tcpdump

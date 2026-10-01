@@ -1,0 +1,8 @@
+nginx                      75.9
+isuports                   75.8
+mysqld                      9.9
+ksoftirqd/1                 0.9
+ksoftirqd/0                 0.9
+pidstat                     0.7
+kcompactd0                  0.4
+kswapd0                     0.2
