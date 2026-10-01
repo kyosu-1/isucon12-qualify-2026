@@ -1,5 +1,5 @@
 server {
-  listen 443 ssl default_server;
+  listen 127.0.0.1:8445 ssl default_server; # 443 は stream が使う
   ssl_certificate     /etc/nginx/tls/fullchain.pem;
   ssl_certificate_key /etc/nginx/tls/key.pem;
   ssl_dhparam         /etc/nginx/tls/dhparam.pem;

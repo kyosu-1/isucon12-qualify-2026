@@ -37,9 +37,10 @@ deploy_node() {
       ch=0; sudo systemctl is-active -q blackauth || sudo systemctl enable --now blackauth >/dev/null 2>&1
       sync_file $D/nginx/nginx.conf /etc/nginx/nginx.conf && ch=1
       sync_file $D/nginx/sites-available/isuports.conf /etc/nginx/sites-available/isuports.conf && ch=1
+      sync_file $D/nginx/sites-available/default /etc/nginx/sites-available/default && ch=1
       sudo nginx -t 2>&1 | grep -v "syntax is ok" | grep -v "test is successful"
       sudo nginx -t >/dev/null 2>&1 || { echo "NGINX CONFIG NG"; exit 1; }
-      if [ $ch = 1 ]; then echo "nginx: restart"; sudo systemctl restart nginx; else sudo systemctl start nginx; fi
+      if [ $ch = 1 ]; then echo "nginx: restart"; sudo systemctl restart nginx || { echo "NGINX START FAILED"; sudo journalctl -u nginx -n 4 --no-pager -o cat; }; else sudo systemctl start nginx; fi
     fi
     if has isuports; then sudo systemctl restart isuports; fi
     sleep 1
