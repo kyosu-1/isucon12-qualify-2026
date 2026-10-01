@@ -29,6 +29,11 @@ for n in $NODES; do
   h=$(host_of $n)
   $SSH $h "awk '\$1==\"Average:\"{next} \$NF==\"Command\"{secs++;next} NF>=10 && \$(NF-2)~/^[0-9.]+\$/{cpu[\$NF]+=\$(NF-2)} END{for(c in cpu) printf \"%-24s %6.1f\n\", c, cpu[c]/secs}' /tmp/pidstat.txt | sort -k2 -rn | head -8" > "$D/cpu-isu$n.txt"
   $SSH $h "cat /tmp/vmstat.txt" > "$D/vmstat-isu$n.txt"
+  $SSH $h "curl -s 'localhost:3000/internal/stats?routes=1'" | python3 -c "
+import json,sys
+try:
+    for r in json.load(sys.stdin): print('%8d  avg %8.3fms  max %9.1fms  %s' % (r['n'], r['avg_ms'], r['max_ms'], r['path']))
+except Exception as e: print('no stats', e)" > "$D/routes-isu$n.txt"
   $SSH $h "sudo journalctl -u isuports --since '-3min' --no-pager -o cat | grep -iE 'error|panic' | sed -E 's/[0-9a-f]{8,}/X/g; s/[0-9]+/N/g' | cut -c1-240 | sort | uniq -c | sort -rn | head -20" > "$D/app-errors-isu$n.txt"
   if grep -qx mysql "$ROOT/etc/isu$n/services" 2>/dev/null; then
     $SSH $h "sudo test -s /var/log/mysql/slow.log && sudo pt-query-digest --limit 12 /var/log/mysql/slow.log 2>/dev/null | head -150" > "$D/slow.txt"
@@ -43,6 +48,6 @@ ERRS=$(python3 -c "import json;d=json.load(open('$D/score.json'));print(d['error
 echo "| $(date +%H:%M) | $SCORE | $PASS | $ERRS | $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null) | $TS | $NOTE |" >> "$ROOT/scores/log.md"
 echo "===== $TS  SCORE=$SCORE pass=$PASS errors=$ERRS  ($NOTE)"
 python3 -c "import json;d=json.load(open('$D/score.json'));[print('  ',m) for m in d['messages'][:12]];print('  table:',d['table'])"
-for n in $NODES; do echo "--- isu$n busy=$(busy "$D/vmstat-isu$n.txt")"; head -5 "$D/cpu-isu$n.txt"; done
+for n in $NODES; do echo "--- isu$n busy=$(busy "$D/vmstat-isu$n.txt")"; head -3 "$D/cpu-isu$n.txt"; head -6 "$D/routes-isu$n.txt"; done
 echo "--- bench busy=$(busy "$D/vmstat-bench.txt")"
 head -14 "$D/alp.txt"

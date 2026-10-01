@@ -93,6 +93,29 @@ func SetCacheControlPrivate(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// ルート別のリクエスト数と処理時間（計測用。nginx を L4 にしたので alp の代わり）。/internal/stats?routes=1 で読んでリセット
+type routeStat struct{ n, ns, max int64 }
+
+var routeStats = map[string]*routeStat{}
+
+func routeStatsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		s := routeStats[c.Path()]
+		if s == nil {
+			return next(c)
+		}
+		start := time.Now()
+		err := next(c)
+		d := int64(time.Since(start))
+		atomic.AddInt64(&s.n, 1)
+		atomic.AddInt64(&s.ns, d)
+		if d > atomic.LoadInt64(&s.max) {
+			atomic.StoreInt64(&s.max, d)
+		}
+		return err
+	}
+}
+
 // Run は cmd/isuports/main.go から呼ばれるエントリーポイントです
 func Run() {
 	e := echo.New()
@@ -101,6 +124,7 @@ func Run() {
 
 	e.Use(middleware.Recover())
 	e.Use(SetCacheControlPrivate)
+	e.Use(routeStatsMiddleware)
 
 	// SaaS管理者向けAPI
 	e.POST("/api/admin/tenants/add", tenantsAddHandler)
@@ -136,6 +160,25 @@ func Run() {
 			ID   int64 `json:"id"`
 			Reqs int64 `json:"reqs"`
 		}
+		if c.QueryParam("routes") != "" {
+			type rs struct {
+				Path  string  `json:"path"`
+				N     int64   `json:"n"`
+				AvgMs float64 `json:"avg_ms"`
+				MaxMs float64 `json:"max_ms"`
+			}
+			out := []rs{}
+			for p, s := range routeStats {
+				n := atomic.SwapInt64(&s.n, 0)
+				ns := atomic.SwapInt64(&s.ns, 0)
+				mx := atomic.SwapInt64(&s.max, 0)
+				if n > 0 {
+					out = append(out, rs{p, n, float64(ns) / float64(n) / 1e6, float64(mx) / 1e6})
+				}
+			}
+			sort.Slice(out, func(i, j int) bool { return out[i].N > out[j].N })
+			return c.JSON(http.StatusOK, out)
+		}
 		res := []st{}
 		tenantsMu.Lock()
 		for id, t := range tenants {
@@ -147,6 +190,11 @@ func Run() {
 	})
 
 	e.HTTPErrorHandler = errorResponseHandler
+	for _, r := range e.Routes() {
+		if routeStats[r.Path] == nil {
+			routeStats[r.Path] = &routeStat{}
+		}
+	}
 
 	baseHost = getEnv("ISUCON_BASE_HOSTNAME", ".t.isucon.local")
 	adminHost = getEnv("ISUCON_ADMIN_HOSTNAME", "admin.t.isucon.local")
