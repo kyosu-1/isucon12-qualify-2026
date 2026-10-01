@@ -1,0 +1,4 @@
+commit: 470ea2b (nginx stream: weight 1:2:2（isu1 のテナントは 1 テナントあたり 1.27k req、isu2/3 は 3.7k req。isu1 は nginx で CPU が足りていない）)
+dirty: 0
+nodes: 1 2 3
+note: stream weight 1:2:2

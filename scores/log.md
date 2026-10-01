@@ -15,3 +15,4 @@
 | 17:45 | 802508 | True | 0(crit 0) | 08d0b24 | 20261001-174414 | stream weight 3:4:4 |
 | 17:47 | 946636 | True | 0(crit 0) | 3c73c0b | 20261001-174643 | RSA 署名を OpenSSL(cgo) に + weight 均等に戻し |
 | 17:51 | 975983 | True | 0(crit 0) | 68502fb | 20261001-174956 | player レスポンスキャッシュ + cookie 手パース |
+| 17:53 | 972154 | True | 0(crit 0) | 470ea2b | 20261001-175203 | stream weight 1:2:2 |

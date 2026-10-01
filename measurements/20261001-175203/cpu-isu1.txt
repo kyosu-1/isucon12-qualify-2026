@@ -1,0 +1,8 @@
+isuports                   85.4
+nginx                      75.9
+mysqld                     10.1
+ksoftirqd/0                 0.7
+pidstat                     0.6
+ksoftirqd/1                 0.6
+systemd-journal             0.1
+rcu_sched                   0.1
