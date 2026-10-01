@@ -1,0 +1,4 @@
+commit: 1851038 (計測: ranking の「書き出し前まで」の時間を分けて取る)
+dirty: 0
+nodes: 1 2 3
+note: ranking の内訳計測
