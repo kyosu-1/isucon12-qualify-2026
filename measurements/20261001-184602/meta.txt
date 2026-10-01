@@ -1,0 +1,4 @@
+commit: b38bf3f (RSA 署名の並列数制限を既定で無効に戻す（ISUCON_SIGN_PARALLEL で指定可能）。読み取りの RLock 化は残す)
+dirty: 0
+nodes: 1 2 3
+note: 署名並列制限なし + 読み取り RLock のみ
