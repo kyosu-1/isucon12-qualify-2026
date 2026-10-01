@@ -1,0 +1,4 @@
+commit: 821af1b (閲覧履歴の SQLite 書き込みを非同期バッチに（メモリの visitors が正。停止時・initialize 時に書き切る）)
+dirty: 0
+nodes: 1 2 3
+note: visit_history 書き込みを非同期バッチ化

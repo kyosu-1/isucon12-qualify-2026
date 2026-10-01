@@ -1,0 +1,11 @@
+  248523  avg    0.740ms  max     572.5ms  /api/player/player/:player_id
+  103102  avg    5.698ms  max     555.0ms  /api/player/competition/:competition_id/ranking
+   13260  avg    0.277ms  max      67.1ms  /api/player/competitions
+    2242  avg    3.456ms  max     180.5ms  /api/organizer/players
+    2233  avg    0.243ms  max      72.1ms  /api/organizer/competitions/add
+    2227  avg    2.476ms  max     101.9ms  /api/organizer/competition/:competition_id/score
+    2146  avg   21.519ms  max     611.5ms  /api/organizer/competition/:competition_id/finish
+    2124  avg    0.163ms  max      14.3ms  /api/organizer/billing
+     128  avg   21.304ms  max     144.4ms  /api/organizer/players/add
+       7  avg    0.105ms  max       0.1ms  /api/organizer/player/:player_id/disqualified
+       1  avg  868.057ms  max     868.1ms  /internal/initialize
