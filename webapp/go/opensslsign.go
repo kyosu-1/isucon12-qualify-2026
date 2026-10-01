@@ -42,8 +42,11 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"sync"
+	"time"
 	"unsafe"
 )
 
@@ -123,4 +126,35 @@ func loadTLSCertificate(certFile, keyFile string) (tls.Certificate, error) {
 	}
 	cert.PrivateKey = s
 	return cert, nil
+}
+
+// BenchSign は署名 1 回あたりの時間を測る（`isuports benchsign`。計測用）
+func BenchSign() {
+	certFile, keyFile := getEnv("ISUCON_TLS_CERT", "/etc/nginx/tls/fullchain.pem"), getEnv("ISUCON_TLS_KEY", "/etc/nginx/tls/key.pem")
+	goCert, _ := tls.LoadX509KeyPair(certFile, keyFile)
+	osCert, _ := loadTLSCertificate(certFile, keyFile)
+	d := sha256.Sum256([]byte("bench"))
+	opts := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash, Hash: crypto.SHA256}
+	run := func(name string, s crypto.Signer, par, n int) {
+		start := time.Now()
+		var wg sync.WaitGroup
+		for p := 0; p < par; p++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for i := 0; i < n; i++ {
+					if _, err := s.Sign(rand.Reader, d[:], opts); err != nil {
+						panic(err)
+					}
+				}
+			}()
+		}
+		wg.Wait()
+		el := time.Since(start)
+		fmt.Printf("%-8s par=%d  %.3f ms/sign (wall per goroutine)  %.0f sign/s total\n", name, par, float64(el.Microseconds())/1000/float64(n), float64(par*n)/el.Seconds())
+	}
+	for _, par := range []int{1, 2} {
+		run("go", goCert.PrivateKey.(crypto.Signer), par, 1000)
+		run("openssl", osCert.PrivateKey.(crypto.Signer), par, 1000)
+	}
 }

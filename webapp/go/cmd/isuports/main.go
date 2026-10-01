@@ -15,5 +15,9 @@ func main() {
 		}
 		return
 	}
+	if len(os.Args) > 1 && os.Args[1] == "benchsign" {
+		isuports.BenchSign()
+		return
+	}
 	isuports.Run()
 }
