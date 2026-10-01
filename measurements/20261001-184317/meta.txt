@@ -1,0 +1,4 @@
+commit: 67fc4bb (RSA 署名の同時実行を 1 本に制限、読み取り系ハンドラは RLock だけで読む（降順リストは書き込み時に作る）)
+dirty: 0
+nodes: 1 2 3
+note: RSA 署名 1 並列 + 読み取りは RLock のみ
