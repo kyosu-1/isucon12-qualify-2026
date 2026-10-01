@@ -164,6 +164,17 @@ func Run() {
 
 	go func() { _ = http.ListenAndServe("127.0.0.1:6060", nil) }()
 
+	// TLS を直接終端する入口（isu1 の nginx stream から SNI ハッシュで振られてくる）
+	if tlsAddr := getEnv("ISUCON_TLS_ADDR", ""); tlsAddr != "" {
+		go func() {
+			srv := &http.Server{Addr: tlsAddr, Handler: frontHandler(e)}
+			e.Logger.Fatal(srv.ListenAndServeTLS(
+				getEnv("ISUCON_TLS_CERT", "/etc/nginx/tls/fullchain.pem"),
+				getEnv("ISUCON_TLS_KEY", "/etc/nginx/tls/key.pem"),
+			))
+		}()
+	}
+
 	port := getEnv("SERVER_APP_PORT", "3000")
 	serverPort := fmt.Sprintf(":%s", port)
 	e.Logger.Fatal(e.Start(serverPort))
