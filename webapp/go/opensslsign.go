@@ -45,12 +45,21 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 	"unsafe"
 )
 
-var signSem = make(chan struct{}, 1)
+// ISUCON_SIGN_PARALLEL=N で署名の同時実行数を制限する（未設定なら無制限）。
+// 1 にするとハンドシェイクが詰まって ranking の 1.2 秒タイムアウトと再接続が増え、dial timeout が 235 件出た
+var signSem = func() chan struct{} {
+	n, _ := strconv.Atoi(os.Getenv("ISUCON_SIGN_PARALLEL"))
+	if n <= 0 {
+		return nil
+	}
+	return make(chan struct{}, n)
+}()
 
 type opensslSigner struct {
 	key *C.EVP_PKEY
@@ -90,8 +99,10 @@ func (s *opensslSigner) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts)
 	siglen := C.size_t(len(sig))
 	// 同時に走らせる署名は 1 本だけ。2 vCPU は同じ物理コアの HT で、2 並列にしても署名のスループットは増えない
 	// （benchsign: 1 並列 1677/s、2 並列 1766/s）。接続のバーストで両方の vCPU を署名が占有すると既存接続の処理が待たされる
-	signSem <- struct{}{}
-	defer func() { <-signSem }()
+	if signSem != nil {
+		signSem <- struct{}{}
+		defer func() { <-signSem }()
+	}
 	if C.isu_rsa_sign(s.key, pss, nid, saltlen,
 		(*C.uchar)(unsafe.Pointer(&digest[0])), C.size_t(len(digest)),
 		(*C.uchar)(unsafe.Pointer(&sig[0])), &siglen) == 0 {
