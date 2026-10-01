@@ -278,6 +278,11 @@ func Run() {
 					return &cert, nil
 				},
 			}}
+			// 使われなくなった keep-alive 接続をサーバー側から閉じる。ベンチ機 → isu1:443 の同時接続が約 3.2 万を超えると
+			// ベンチ機の connect() が遅くなり、負荷終了時の dial timeout（1 件 1% 減点）が増える
+			if d, err := time.ParseDuration(getEnv("ISUCON_IDLE_TIMEOUT", "")); err == nil && d > 0 {
+				srv.IdleTimeout = d
+			}
 			if getEnv("ISUCON_HTTP2", "1") != "1" {
 				// HTTP/2 を広告しない（クライアントは HTTP/1.1 にフォールバックする）。Go の h2 サーバーはフレームごとに goroutine を渡り歩くので重い
 				srv.TLSConfig.NextProtos = []string{"http/1.1"}
