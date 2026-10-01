@@ -1,0 +1,4 @@
+commit: 06e2403 (nginx: worker_connections 100000（stream は 1 接続 2 スロット。8192 で枯渇して EOF）)
+dirty: 0
+nodes: 1 2 3
+note: TLS 直終端 + worker_connections 100000
