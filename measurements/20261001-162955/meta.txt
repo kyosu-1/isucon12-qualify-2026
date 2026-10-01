@@ -1,0 +1,4 @@
+commit: 6882d74 (3台構成: nginx が Host で担当ノードを固定 (hash $host consistent)、MySQL は isu1。initialize は他ノードへ伝播)
+dirty: 0
+nodes: 1 2 3
+note: 接続パターン計測用に nginx ログ列追加（コード同一＝ノイズ幅の確認）

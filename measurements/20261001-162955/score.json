@@ -1,0 +1,28 @@
+{
+ "pass": true,
+ "score": 258491,
+ "plus": 258491,
+ "minus": 0,
+ "errors": "0(crit 0)",
+ "messages": [
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x Error N (Critical:N)"
+ ],
+ "table": {
+  "GET admin/tenants/billing": 1315,
+  "GET organizer/billing": 1255,
+  "GET organizer/players/list": 1342,
+  "GET player/competition/:c/ranking": 57963,
+  "GET player/competitions": 7695,
+  "GET player/player/:player_name": 136157,
+  "POST admin/tenants/add": 82,
+  "POST organizer/competition/:c/finish": 1274,
+  "POST organizer/competition/:c/score": 1338,
+  "POST organizer/competitions/add": 1338,
+  "POST organizer/player/:player_name/disqualified": 9,
+  "POST organizer/players/add": 114
+ },
+ "workers": ""
+}
