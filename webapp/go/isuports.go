@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -112,6 +113,38 @@ func (s *routeStat) add(d int64) {
 	}
 }
 
+// 計測用: keep-alive 接続がアイドルになってから次のリクエストが来るまでの時間の分布
+var (
+	connIdleSince sync.Map // net.Conn -> *int64 (UnixNano)
+	idleGapBounds = []time.Duration{200 * time.Millisecond, 500 * time.Millisecond, time.Second, 2 * time.Second, 3 * time.Second, 5 * time.Second, 10 * time.Second, 20 * time.Second}
+	idleGapHist   [9]int64
+)
+
+func trackConnState(c net.Conn, st http.ConnState) {
+	switch st {
+	case http.StateIdle:
+		now := time.Now().UnixNano()
+		if v, ok := connIdleSince.Load(c); ok {
+			atomic.StoreInt64(v.(*int64), now)
+		} else {
+			connIdleSince.Store(c, &now)
+		}
+	case http.StateActive:
+		if v, ok := connIdleSince.Load(c); ok {
+			if since := atomic.SwapInt64(v.(*int64), 0); since != 0 {
+				gap := time.Duration(time.Now().UnixNano() - since)
+				i := 0
+				for i < len(idleGapBounds) && gap >= idleGapBounds[i] {
+					i++
+				}
+				atomic.AddInt64(&idleGapHist[i], 1)
+			}
+		}
+	case http.StateClosed, http.StateHijacked:
+		connIdleSince.Delete(c)
+	}
+}
+
 var rankPrepStat = &routeStat{}
 var handshakeStat = &routeStat{}
 var routeStats = map[string]*routeStat{"ranking: レスポンス書き出し前まで": rankPrepStat, "TLS handshake (件数のみ)": handshakeStat,
@@ -179,6 +212,44 @@ func Run() {
 		type st struct {
 			ID   int64 `json:"id"`
 			Reqs int64 `json:"reqs"`
+		}
+		if c.QueryParam("idle") != "" {
+			// アイドル間隔の分布と、今アイドル中の接続がどれだけ前から待っているか
+			out := map[string]any{}
+			gaps := map[string]int64{}
+			prev := "0"
+			for i := range idleGapHist {
+				label := ">=" + prev
+				if i < len(idleGapBounds) {
+					label = prev + "-" + idleGapBounds[i].String()
+					prev = idleGapBounds[i].String()
+				}
+				gaps[label] = atomic.SwapInt64(&idleGapHist[i], 0)
+			}
+			out["gap_between_requests"] = gaps
+			now := time.Now().UnixNano()
+			var total, idle1, idle3, idle5, idle10 int64
+			connIdleSince.Range(func(_, v any) bool {
+				total++
+				if since := atomic.LoadInt64(v.(*int64)); since != 0 {
+					d := time.Duration(now - since)
+					if d >= time.Second {
+						idle1++
+					}
+					if d >= 3*time.Second {
+						idle3++
+					}
+					if d >= 5*time.Second {
+						idle5++
+					}
+					if d >= 10*time.Second {
+						idle10++
+					}
+				}
+				return true
+			})
+			out["conns_now"] = map[string]int64{"total": total, "idle>=1s": idle1, "idle>=3s": idle3, "idle>=5s": idle5, "idle>=10s": idle10}
+			return c.JSON(http.StatusOK, out)
 		}
 		if c.QueryParam("routes") != "" {
 			type rs struct {
@@ -283,6 +354,7 @@ func Run() {
 			if d, err := time.ParseDuration(getEnv("ISUCON_IDLE_TIMEOUT", "")); err == nil && d > 0 {
 				srv.IdleTimeout = d
 			}
+			srv.ConnState = trackConnState
 			if getEnv("ISUCON_HTTP2", "1") != "1" {
 				// HTTP/2 を広告しない（クライアントは HTTP/1.1 にフォールバックする）。Go の h2 サーバーはフレームごとに goroutine を渡り歩くので重い
 				srv.TLSConfig.NextProtos = []string{"http/1.1"}
