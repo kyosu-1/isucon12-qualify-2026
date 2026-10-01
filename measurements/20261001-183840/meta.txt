@@ -1,0 +1,4 @@
+commit: 361f878 (bench: 1014168 (エラー 6) / 1019424 (エラー 5) ベンチ機 tw_reuse=2 + max_tw_buckets=4096 は悪化（SYNChallenge 4712 / 3537）)
+dirty: 0
+nodes: 1 2 3
+note: CLOSE_WAIT 滞留の観測 (ベンチ機設定は tw_buckets=4096 のまま)

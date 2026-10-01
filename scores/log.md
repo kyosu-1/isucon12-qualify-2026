@@ -30,3 +30,4 @@
 | 18:34 | 1075003 | True | 0(crit 0) | 049c6ac | 20261001-183308 | isu1 TCP メモリ圧迫対策 (nginx バッファ縮小 + tcp_mem) |
 | 18:36 | 1014168 | True | 6(crit 0) | bcb6e47 | 20261001-183536 | ベンチ機 tw_reuse=2 + max_tw_buckets=4096 (1) |
 | 18:38 | 1019424 | True | 5(crit 0) | bcb6e47 | 20261001-183650 | ベンチ機 tw_reuse=2 + max_tw_buckets=4096 (2) |
+| 18:39 | 1024610 | True | 0(crit 0) | 361f878 | 20261001-183840 | CLOSE_WAIT 滞留の観測 (ベンチ機設定は tw_buckets=4096 のまま) |
