@@ -31,3 +31,4 @@
 | 18:36 | 1014168 | True | 6(crit 0) | bcb6e47 | 20261001-183536 | ベンチ機 tw_reuse=2 + max_tw_buckets=4096 (1) |
 | 18:38 | 1019424 | True | 5(crit 0) | bcb6e47 | 20261001-183650 | ベンチ機 tw_reuse=2 + max_tw_buckets=4096 (2) |
 | 18:39 | 1024610 | True | 0(crit 0) | 361f878 | 20261001-183840 | CLOSE_WAIT 滞留の観測 (ベンチ機設定は tw_buckets=4096 のまま) |
+| 18:42 | 1175915 | True | 1(crit 0) | d2cbc51 | 20261001-184052 | isu1=L4+MySQL+admin 専任、テナントは isu2/3 |

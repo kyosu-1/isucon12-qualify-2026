@@ -1,0 +1,16 @@
+  304278  avg   11.873ms  max    1552.9ms  /api/player/player/:player_id
+  133872  avg    7.536ms  max    1575.4ms  /api/player/competition/:competition_id/ranking
+  133868  avg    7.483ms  max    1575.4ms  ranking: レスポンス書き出し前まで
+   36610  avg    0.000ms  max       0.0ms  TLS handshake (件数のみ)
+   19326  avg    0.214ms  max     284.1ms  /api/player/competitions
+    3364  avg    0.737ms  max     763.6ms  /api/organizer/players
+    3360  avg    0.030ms  max      14.2ms  /api/organizer/competitions/add
+    3343  avg    0.000ms  max       0.0ms  score: 行数 (avg_ms の 100 万倍が平均行数)
+    3343  avg    0.629ms  max     526.7ms  /api/organizer/competition/:competition_id/score
+    3343  avg    0.371ms  max     526.5ms  score: ロック取得まで
+    3343  avg    0.370ms  max     526.5ms  score: CSV 読み込み完了まで
+    3137  avg  195.782ms  max    1618.1ms  /api/organizer/competition/:competition_id/finish
+    3108  avg    0.538ms  max     249.6ms  /api/organizer/billing
+     270  avg  152.227ms  max    1453.3ms  /api/organizer/players/add
+       4  avg    0.018ms  max       0.0ms  /api/organizer/player/:player_id/disqualified
+       1  avg  839.465ms  max     839.5ms  /internal/initialize

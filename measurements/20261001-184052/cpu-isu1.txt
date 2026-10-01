@@ -1,0 +1,8 @@
+nginx                      93.2
+mysqld                     21.4
+isuports                   18.4
+ksoftirqd/0                 1.1
+ksoftirqd/1                 1.0
+pidstat                     0.7
+landscape-sysin             0.3
+sshd                        0.1

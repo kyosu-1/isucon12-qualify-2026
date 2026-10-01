@@ -1,0 +1,4 @@
+commit: d2cbc51 (isu1 = L4 中継 + MySQL + admin API 専任、テナントは isu2/isu3 のみ。ベンチ機の TCP 設定は tw_reuse=1 に戻す)
+dirty: 0
+nodes: 1 2 3
+note: isu1=L4+MySQL+admin 専任、テナントは isu2/3
