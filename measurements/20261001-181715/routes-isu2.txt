@@ -1,0 +1,13 @@
+  282451  avg    0.229ms  max     366.7ms  /api/player/player/:player_id
+  118106  avg    0.239ms  max     269.7ms  /api/player/competition/:competition_id/ranking
+  118101  avg    0.188ms  max     269.6ms  ranking: レスポンス書き出し前まで
+   15115  avg    0.312ms  max     163.1ms  /api/player/competitions
+    2568  avg    0.287ms  max      95.6ms  /api/organizer/players
+    2542  avg    0.282ms  max      37.2ms  /api/organizer/competitions/add
+    2537  avg   22.084ms  max     522.0ms  /api/organizer/competition/:competition_id/score
+    2454  avg   13.125ms  max     345.0ms  /api/organizer/competition/:competition_id/finish
+    2434  avg    0.208ms  max     118.9ms  /api/organizer/billing
+     135  avg   25.549ms  max     127.9ms  /api/organizer/players/add
+       6  avg    0.145ms  max       0.4ms  /api/organizer/player/:player_id/disqualified
+       1  avg  832.618ms  max     832.6ms  /internal/initialize
+       1  avg    0.005ms  max       0.0ms  /api/organizer/competitions

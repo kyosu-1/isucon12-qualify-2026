@@ -1,0 +1,4 @@
+commit: 138e14e (HTTP/2 を広告せず HTTP/1.1 で受ける（ISUCON_HTTP2=0）)
+dirty: 0
+nodes: 1 2 3
+note: HTTP/1.1 のみ (h2 無効)
