@@ -98,9 +98,24 @@ func SetCacheControlPrivate(next echo.HandlerFunc) echo.HandlerFunc {
 // ルート別のリクエスト数と処理時間（計測用。nginx を L4 にしたので alp の代わり）。/internal/stats?routes=1 で読んでリセット
 type routeStat struct{ n, ns, max int64 }
 
+var (
+	scoreBodyStat = &routeStat{}
+	scoreLockStat = &routeStat{}
+	scoreRowsStat = &routeStat{}
+)
+
+func (s *routeStat) add(d int64) {
+	atomic.AddInt64(&s.n, 1)
+	atomic.AddInt64(&s.ns, d)
+	if d > atomic.LoadInt64(&s.max) {
+		atomic.StoreInt64(&s.max, d)
+	}
+}
+
 var rankPrepStat = &routeStat{}
 var handshakeStat = &routeStat{}
-var routeStats = map[string]*routeStat{"ranking: レスポンス書き出し前まで": rankPrepStat, "TLS handshake (件数のみ)": handshakeStat}
+var routeStats = map[string]*routeStat{"ranking: レスポンス書き出し前まで": rankPrepStat, "TLS handshake (件数のみ)": handshakeStat,
+	"score: CSV 読み込み完了まで": scoreBodyStat, "score: ロック取得まで": scoreLockStat, "score: 行数 (avg_ms の 100 万倍が平均行数)": scoreRowsStat}
 
 func routeStatsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -990,8 +1005,12 @@ func competitionScoreHandler(c echo.Context) error {
 		csvRows = append(csvRows, csvRow{row[0], row[1]})
 	}
 
+	statStart, _ := c.Get("statStart").(time.Time)
+	scoreBodyStat.add(int64(time.Since(statStart)))
+	scoreRowsStat.add(int64(len(csvRows)))
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	scoreLockStat.add(int64(time.Since(statStart)))
 	if comp.Finished {
 		return c.JSON(http.StatusBadRequest, FailureResult{Status: false, Message: "competition is finished"})
 	}

@@ -22,7 +22,7 @@ deploy_node() {
       sudo cmp -s "$1" "$2" && return 1
       sudo install -m 644 "$1" "$2"; return 0
     }
-    sudo -u isucon bash -c "cd /home/isucon/webapp/go && /usr/local/go/bin/go build -o isuports.new ./cmd/isuports && mv isuports.new isuports" || { echo "BUILD FAILED"; exit 1; }
+    sudo -u isucon bash -c "cd /home/isucon/webapp/go && /usr/local/go/bin/go build -o isuports.new ./cmd/isuports && mv isuports.new isuports" || { echo "!!!!!!!! BUILD FAILED（旧バイナリのまま）!!!!!!!!"; exit 1; }
     sudo install -o isucon -g isucon -m 644 $D/home/env.sh /home/isucon/env.sh
     sync_file $D/systemd/isuports.service /etc/systemd/system/isuports.service && sudo systemctl daemon-reload
     if [ -f $D/sysctl.d/99-isucon.conf ] && sync_file $D/sysctl.d/99-isucon.conf /etc/sysctl.d/99-isucon.conf; then sudo sysctl --system >/dev/null 2>&1 || true; fi
