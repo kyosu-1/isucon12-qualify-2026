@@ -1,0 +1,4 @@
+commit: 9f492f2 (docs: CLAUDE.md / SKILL.md を最終構成に更新)
+dirty: 0
+nodes: 1 2 3
+note: 最終計測 2/5 (isu1 専任構成)
