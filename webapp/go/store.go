@@ -298,6 +298,9 @@ func (t *tenantT) load() error {
 	for _, c := range t.compList {
 		t.rebuildRanks(c)
 	}
+	// 降順リストは書き込み時に作り直す（読み取り側は RLock だけで読む）
+	t.compsDesc()
+	t.playersDesc()
 	t.writeCh = make(chan writeJob, 8192)
 	t.writeDone = make(chan struct{})
 	go t.writer(t.writeCh, t.writeDone, db)

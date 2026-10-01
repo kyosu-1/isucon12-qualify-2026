@@ -674,7 +674,7 @@ func playersListHandler(c echo.Context) error {
 		return fmt.Errorf("error getTenant: %w", err)
 	}
 
-	t.mu.Lock() // playersDesc がキャッシュを作るので書き込みロック
+	t.mu.RLock()
 	var pds []PlayerDetail
 	for _, p := range t.playersDesc() {
 		pds = append(pds, PlayerDetail{
@@ -683,7 +683,7 @@ func playersListHandler(c echo.Context) error {
 			IsDisqualified: p.Disq,
 		})
 	}
-	t.mu.Unlock()
+	t.mu.RUnlock()
 
 	res := PlayersListHandlerResult{
 		Players: pds,
@@ -748,6 +748,7 @@ func playersAddHandler(c echo.Context) error {
 		t.playerList = append(t.playerList, p)
 	}
 	t.playerDesc = nil
+	t.playersDesc() // 読み取り側が RLock だけで済むよう、ここで作り直しておく
 
 	res := PlayersAddHandlerResult{
 		Players: pds,
@@ -846,6 +847,7 @@ func competitionsAddHandler(c echo.Context) error {
 	t.comps[id] = comp
 	t.compList = append(t.compList, comp)
 	t.compDesc = nil
+	t.compsDesc() // 読み取り側が RLock だけで済むよう、ここで作り直しておく
 
 	res := CompetitionsAddHandlerResult{
 		Competition: CompetitionDetail{
@@ -1082,13 +1084,13 @@ func billingHandler(c echo.Context) error {
 		return err
 	}
 
-	t.mu.Lock() // compsDesc がキャッシュを作るので書き込みロック
+	t.mu.RLock()
 	cs := t.compsDesc()
 	tbrs := make([]BillingReport, 0, len(cs))
 	for _, comp := range cs {
 		tbrs = append(tbrs, comp.report())
 	}
-	t.mu.Unlock()
+	t.mu.RUnlock()
 
 	res := SuccessResult{
 		Status: true,
@@ -1354,10 +1356,8 @@ func competitionsHandler(c echo.Context, t *tenantT) error {
 	bp := bufPool.Get().(*[]byte)
 	buf := (*bp)[:0]
 	buf = append(buf, `{"status":true,"data":{"competitions":[`...)
-	t.mu.Lock() // compsDesc がキャッシュを作るので書き込みロック
-	cs := t.compsDesc()
-	t.mu.Unlock()
 	t.mu.RLock()
+	cs := t.compsDesc()
 	for i, comp := range cs {
 		if i > 0 {
 			buf = append(buf, ',')

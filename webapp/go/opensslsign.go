@@ -50,6 +50,8 @@ import (
 	"unsafe"
 )
 
+var signSem = make(chan struct{}, 1)
+
 type opensslSigner struct {
 	key *C.EVP_PKEY
 	pub *rsa.PublicKey
@@ -86,6 +88,10 @@ func (s *opensslSigner) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts)
 	}
 	sig := make([]byte, s.pub.Size())
 	siglen := C.size_t(len(sig))
+	// 同時に走らせる署名は 1 本だけ。2 vCPU は同じ物理コアの HT で、2 並列にしても署名のスループットは増えない
+	// （benchsign: 1 並列 1677/s、2 並列 1766/s）。接続のバーストで両方の vCPU を署名が占有すると既存接続の処理が待たされる
+	signSem <- struct{}{}
+	defer func() { <-signSem }()
 	if C.isu_rsa_sign(s.key, pss, nid, saltlen,
 		(*C.uchar)(unsafe.Pointer(&digest[0])), C.size_t(len(digest)),
 		(*C.uchar)(unsafe.Pointer(&sig[0])), &siglen) == 0 {
