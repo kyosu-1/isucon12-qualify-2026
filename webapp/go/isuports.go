@@ -2,6 +2,7 @@ package isuports
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/csv"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -128,6 +130,21 @@ func Run() {
 	e.POST("/initialize", initializeHandler)
 	// 他ノードからの初期化依頼（nginx は外に出さない）
 	e.POST("/internal/initialize", internalInitializeHandler)
+	// テナント別リクエスト数（計測用）
+	e.GET("/internal/stats", func(c echo.Context) error {
+		type st struct {
+			ID   int64 `json:"id"`
+			Reqs int64 `json:"reqs"`
+		}
+		res := []st{}
+		tenantsMu.Lock()
+		for id, t := range tenants {
+			res = append(res, st{id, atomic.LoadInt64(&t.reqs)})
+		}
+		tenantsMu.Unlock()
+		sort.Slice(res, func(i, j int) bool { return res[i].Reqs > res[j].Reqs })
+		return c.JSON(http.StatusOK, res)
+	})
 
 	e.HTTPErrorHandler = errorResponseHandler
 
@@ -167,11 +184,17 @@ func Run() {
 	// TLS を直接終端する入口（isu1 の nginx stream から SNI ハッシュで振られてくる）
 	if tlsAddr := getEnv("ISUCON_TLS_ADDR", ""); tlsAddr != "" {
 		go func() {
-			srv := &http.Server{Addr: tlsAddr, Handler: frontHandler(e)}
-			e.Logger.Fatal(srv.ListenAndServeTLS(
+			cert, err := loadTLSCertificate(
 				getEnv("ISUCON_TLS_CERT", "/etc/nginx/tls/fullchain.pem"),
 				getEnv("ISUCON_TLS_KEY", "/etc/nginx/tls/key.pem"),
-			))
+			)
+			if err != nil {
+				e.Logger.Fatalf("failed to load TLS certificate: %v", err)
+			}
+			_, viaOpenSSL := cert.PrivateKey.(*opensslSigner)
+			fmt.Printf("TLS listening on %s (openssl signer: %v)\n", tlsAddr, viaOpenSSL)
+			srv := &http.Server{Addr: tlsAddr, Handler: frontHandler(e), TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert}}}
+			e.Logger.Fatal(srv.ListenAndServeTLS("", ""))
 		}()
 	}
 

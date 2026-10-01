@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"sync/atomic"
 )
 
 // JSON の文字列リテラル（引用符込み）にしておく。レスポンスは手書きで組み立てる
@@ -100,6 +101,7 @@ type compT struct {
 type tenantT struct {
 	once    sync.Once
 	loadErr error
+	reqs    int64 // 計測用: このテナントへのリクエスト数
 
 	mu sync.RWMutex
 	id int64
@@ -142,6 +144,7 @@ func getTenant(id int64) (*tenantT, error) {
 		tenants[id] = t
 	}
 	tenantsMu.Unlock()
+	atomic.AddInt64(&t.reqs, 1)
 	t.once.Do(func() { t.loadErr = t.load() })
 	if t.loadErr != nil {
 		return nil, t.loadErr

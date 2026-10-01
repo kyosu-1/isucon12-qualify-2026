@@ -8,6 +8,7 @@ for n in 1 2 3; do
     command -v alp >/dev/null || { curl -fsSL https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz | tar xz alp && sudo install alp /usr/local/bin/ && rm alp; }
     command -v pt-query-digest >/dev/null && command -v pidstat >/dev/null || { sudo apt-get update -qq >/dev/null; sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq percona-toolkit sysstat >/dev/null; }
     [ -x /usr/local/go/bin/go ] || { curl -fsSL https://go.dev/dl/go$GOVER.linux-amd64.tar.gz | sudo tar xz -C /usr/local; }
+    dpkg -s libssl-dev >/dev/null 2>&1 || { sudo apt-get update -qq >/dev/null; sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libssl-dev >/dev/null; }
     /usr/local/go/bin/go version; alp --version; pidstat -V | head -1
   " 2>&1 | sed "s/^/[isu$n] /" &
 done
