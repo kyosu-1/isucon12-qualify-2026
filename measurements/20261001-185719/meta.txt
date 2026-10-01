@@ -1,0 +1,4 @@
+commit: f5cdc1c (アイドル 5 秒の keep-alive 接続をサーバー側から閉じる（ISUCON_IDLE_TIMEOUT）)
+dirty: 0
+nodes: 1 2 3
+note: IdleTimeout 5s

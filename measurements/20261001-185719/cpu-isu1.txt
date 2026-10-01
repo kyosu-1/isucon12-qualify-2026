@@ -1,0 +1,8 @@
+nginx                      89.5
+mysqld                     19.7
+isuports                   16.6
+ksoftirqd/1                 1.0
+ksoftirqd/0                 1.0
+ss                          0.7
+pidstat                     0.7
+rcu_sched                   0.1
