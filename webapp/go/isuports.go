@@ -255,6 +255,11 @@ func Run() {
 			_, viaOpenSSL := cert.PrivateKey.(*opensslSigner)
 			fmt.Printf("TLS listening on %s (openssl signer: %v)\n", tlsAddr, viaOpenSSL)
 			srv := &http.Server{Addr: tlsAddr, Handler: frontHandler(e), TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert}, DynamicRecordSizingDisabled: true}}
+			if getEnv("ISUCON_HTTP2", "1") != "1" {
+				// HTTP/2 を広告しない（クライアントは HTTP/1.1 にフォールバックする）。Go の h2 サーバーはフレームごとに goroutine を渡り歩くので重い
+				srv.TLSConfig.NextProtos = []string{"http/1.1"}
+				srv.TLSNextProto = map[string]func(*http.Server, *tls.Conn, http.Handler){}
+			}
 			e.Logger.Fatal(srv.ListenAndServeTLS("", ""))
 		}()
 	}
