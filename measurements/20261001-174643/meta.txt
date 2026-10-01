@@ -1,0 +1,4 @@
+commit: 3c73c0b (TLS ハンドシェイクの RSA 署名を OpenSSL (cgo) に差し替え（自己テスト失敗時は Go 標準にフォールバック）+ テナント別リクエスト数の計測口)
+dirty: 0
+nodes: 1 2 3
+note: RSA 署名を OpenSSL(cgo) に + weight 均等に戻し
