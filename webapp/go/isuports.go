@@ -98,7 +98,8 @@ func SetCacheControlPrivate(next echo.HandlerFunc) echo.HandlerFunc {
 // ルート別のリクエスト数と処理時間（計測用。nginx を L4 にしたので alp の代わり）。/internal/stats?routes=1 で読んでリセット
 type routeStat struct{ n, ns, max int64 }
 
-var routeStats = map[string]*routeStat{}
+var rankPrepStat = &routeStat{}
+var routeStats = map[string]*routeStat{"ranking: レスポンス書き出し前まで": rankPrepStat}
 
 func routeStatsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -107,6 +108,7 @@ func routeStatsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 		start := time.Now()
+		c.Set("statStart", start)
 		err := next(c)
 		d := int64(time.Since(start))
 		atomic.AddInt64(&s.n, 1)
@@ -1229,6 +1231,14 @@ func competitionRankingHandler(c echo.Context) error {
 	rankBuf, rankOff := comp.rankBuf, comp.rankOff // 入稿のたびに新しいスライスに差し替わるので、ロックを外した後も読める
 	finished := comp.Finished
 	t.mu.RUnlock()
+	if st, ok := c.Get("statStart").(time.Time); ok {
+		d := int64(time.Since(st))
+		atomic.AddInt64(&rankPrepStat.n, 1)
+		atomic.AddInt64(&rankPrepStat.ns, d)
+		if d > atomic.LoadInt64(&rankPrepStat.max) {
+			atomic.StoreInt64(&rankPrepStat.max, d)
+		}
+	}
 
 	bp := bufPool.Get().(*[]byte)
 	buf := (*bp)[:0]
