@@ -1,0 +1,4 @@
+commit: bdb3d9c (IdleTimeout を無効に戻す + 計測: keep-alive 接続のアイドル間隔の分布 (/internal/stats?idle=1))
+dirty: 0
+nodes: 1 2 3
+note: アイドル間隔の分布計測 (isu1 専任構成)
