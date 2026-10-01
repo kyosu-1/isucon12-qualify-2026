@@ -1,0 +1,4 @@
+commit: 68502fb (player レスポンスをテナントの scoreVer 単位でキャッシュ、Cookie は必要な 1 個だけ手で取り出す)
+dirty: 0
+nodes: 1 2 3
+note: player レスポンスキャッシュ + cookie 手パース
