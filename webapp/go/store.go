@@ -65,6 +65,14 @@ type playerT struct {
 	CreatedAt   int64
 	idJSON      string
 	nameJSON    string
+
+	// GET /api/player/player/:id のレスポンス。テナントのスコアが変わる (scoreVer) か失格になるまで使い回す
+	cache atomic.Pointer[playerCache]
+}
+
+type playerCache struct {
+	ver  int64
+	body []byte
 }
 
 func newPlayer(id, name string, disq bool, createdAt int64) *playerT {
@@ -99,9 +107,10 @@ type compT struct {
 }
 
 type tenantT struct {
-	once    sync.Once
-	loadErr error
-	reqs    int64 // 計測用: このテナントへのリクエスト数
+	once     sync.Once
+	loadErr  error
+	reqs     int64 // 計測用: このテナントへのリクエスト数
+	scoreVer int64 // スコア入稿のたびに増える（mu で保護）
 
 	mu sync.RWMutex
 	id int64

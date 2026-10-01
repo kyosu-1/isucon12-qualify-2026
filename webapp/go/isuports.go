@@ -288,16 +288,40 @@ func verifyToken(tokenStr string) (*tokenClaims, error) {
 	return tc, nil
 }
 
+// Cookie ヘッダから isuports_session の値を取り出す（net/http の Cookie() は全 cookie をパースして確保が多い）
+func sessionToken(r *http.Request) (string, bool) {
+	const prefix = cookieName + "="
+	for _, line := range r.Header["Cookie"] {
+		for len(line) > 0 {
+			var part string
+			if i := strings.IndexByte(line, ';'); i >= 0 {
+				part, line = line[:i], line[i+1:]
+			} else {
+				part, line = line, ""
+			}
+			part = strings.TrimSpace(part)
+			if strings.HasPrefix(part, prefix) {
+				v := part[len(prefix):]
+				if len(v) > 1 && v[0] == '"' && v[len(v)-1] == '"' {
+					v = v[1 : len(v)-1]
+				}
+				return v, true
+			}
+		}
+	}
+	return "", false
+}
+
 // リクエストヘッダをパースしてViewerを返す
 func parseViewer(c echo.Context) (*Viewer, error) {
-	cookie, err := c.Request().Cookie(cookieName)
-	if err != nil {
+	tokenStr, ok := sessionToken(c.Request())
+	if !ok {
 		return nil, echo.NewHTTPError(
 			http.StatusUnauthorized,
 			fmt.Sprintf("cookie %s is not found", cookieName),
 		)
 	}
-	tc, err := verifyToken(cookie.Value)
+	tc, err := verifyToken(tokenStr)
 	if err != nil {
 		return nil, err
 	}
@@ -681,6 +705,7 @@ func playerDisqualifiedHandler(c echo.Context) error {
 		return fmt.Errorf("error Update player: id=%s, %w", playerID, err)
 	}
 	p.Disq = true
+	p.cache.Store(nil)
 
 	res := PlayerDisqualifiedHandlerResult{
 		Player: PlayerDetail{
@@ -946,6 +971,7 @@ func competitionScoreHandler(c echo.Context) error {
 		return fmt.Errorf("error commit: %w", err)
 	}
 	comp.scores = scores
+	t.scoreVer++
 	t.rebuildRanks(comp)
 
 	return c.JSON(http.StatusOK, SuccessResult{
@@ -1035,6 +1061,10 @@ func playerHandler(c echo.Context) error {
 		t.mu.RUnlock()
 		return echo.NewHTTPError(http.StatusNotFound, "player not found")
 	}
+	if pc := p.cache.Load(); pc != nil && pc.ver == t.scoreVer {
+		t.mu.RUnlock()
+		return c.Blob(http.StatusOK, echo.MIMEApplicationJSONCharsetUTF8, pc.body)
+	}
 	bp := bufPool.Get().(*[]byte)
 	buf := (*bp)[:0]
 	buf = append(buf, `{"status":true,"data":{"player":{"id":`...)
@@ -1060,8 +1090,9 @@ func playerHandler(c echo.Context) error {
 			buf = append(buf, '}')
 		}
 	}
-	t.mu.RUnlock()
 	buf = append(buf, `]}}`...)
+	p.cache.Store(&playerCache{ver: t.scoreVer, body: append([]byte(nil), buf...)})
+	t.mu.RUnlock()
 	return writeJSONBuf(c, bp, buf)
 }
 
