@@ -1,0 +1,41 @@
+{
+ "pass": true,
+ "score": 1015552,
+ "plus": 1025810,
+ "minus": -10258,
+ "errors": "1(crit 0)",
+ "messages": [
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: 大会内のランキング取得 Get \"https://utac-yfbsu-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:utac-yfbsu-X role:player playerID:X competitionID:X rankAfter:",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:ai-pcic-X role:player playerID:X competitionID:X rankAfter:",
+  "1x ERROR load: load-validation: Get \"https://utac-yfbsu-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:utac-yfbsu-X role:player playerID:X competitionID:X rankAfter:",
+  "1x Error N (Critical:N)",
+  "1x                      \"count: N (error: N)\",",
+  "1x              \"count: N (error: N)\",",
+  "1x                \"count: N (error: N)\",",
+  "1x           \"count: N (error: N)\",",
+  "1x            \"count: N (error: N)\",",
+  "1x \"count: N (error: N)\",",
+  "1x                            \"count: N (error: N)\",",
+  "1x                 \"count: N (error: N)\",",
+  "1x                    \"count: N (error: N)\",",
+  "1x             \"count: N (error: N)\","
+ ],
+ "table": {
+  "GET admin/tenants/billing": 9492,
+  "GET organizer/billing": 4956,
+  "GET organizer/players/list": 5267,
+  "GET player/competition/:c/ranking": 229003,
+  "GET player/competitions": 30975,
+  "GET player/player/:player_name": 539474,
+  "POST admin/tenants/add": 333,
+  "POST organizer/competition/:c/finish": 5014,
+  "POST organizer/competition/:c/score": 5228,
+  "POST organizer/competitions/add": 5252,
+  "POST organizer/player/:player_name/disqualified": 9,
+  "POST organizer/players/add": 376
+ },
+ "workers": ""
+}

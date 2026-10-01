@@ -1,0 +1,42 @@
+{
+ "pass": true,
+ "score": 1010919,
+ "plus": 1031549,
+ "minus": -20630,
+ "errors": "2(crit 0)",
+ "messages": [
+  "2x error: 大会内のランキング取得 Get \"https://jr-elmz-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:jr-elmz-X role:player playerID:X competitionID:X rankAfter:",
+  "2x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:vj-izehvc-X role:player playerID:X competitionID:X rankAfter:",
+  "2x ERROR load: load-validation: Get \"https://jr-elmz-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:jr-elmz-X role:player playerID:X competitionID:X rankAfter:",
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:frgo-dvow-X role:player playerID:X competitionID:X rankAfter:",
+  "1x Error N (Critical:N)",
+  "1x                      \"count: N (error: N)\",",
+  "1x              \"count: N (error: N)\",",
+  "1x                \"count: N (error: N)\",",
+  "1x           \"count: N (error: N)\",",
+  "1x            \"count: N (error: N)\",",
+  "1x \"count: N (error: N)\",",
+  "1x                            \"count: N (error: N)\",",
+  "1x                 \"count: N (error: N)\",",
+  "1x                    \"count: N (error: N)\",",
+  "1x             \"count: N (error: N)\","
+ ],
+ "table": {
+  "GET admin/tenants/billing": 9163,
+  "GET organizer/billing": 4981,
+  "GET organizer/players/list": 5277,
+  "GET player/competition/:c/ranking": 230622,
+  "GET player/competitions": 31076,
+  "GET player/player/:player_name": 543060,
+  "POST admin/tenants/add": 326,
+  "POST organizer/competition/:c/finish": 5038,
+  "POST organizer/competition/:c/score": 5251,
+  "POST organizer/competitions/add": 5268,
+  "POST organizer/player/:player_name/disqualified": 11,
+  "POST organizer/players/add": 370
+ },
+ "workers": ""
+}

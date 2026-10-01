@@ -1,0 +1,4 @@
+commit: b01ee7a (docs: README、journal 19:00〜)
+dirty: 0
+nodes: 1 2 3
+note: 最終構成 (3 台均等) の再起動試験
