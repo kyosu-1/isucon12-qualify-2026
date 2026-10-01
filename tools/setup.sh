@@ -11,5 +11,8 @@ for n in 1 2 3; do
     /usr/local/go/bin/go version; alp --version; pidstat -V | head -1
   " 2>&1 | sed "s/^/[isu$n] /" &
 done
-$SSH $BENCH 'sudo systemctl disable --now isuports nginx mysql redis-server blackauth unattended-upgrades apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1; echo "[bench] services stopped"' &
+$SSH $BENCH 'sudo systemctl disable --now isuports nginx mysql redis-server blackauth unattended-upgrades apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1; echo "[bench] services stopped"
+  # ベンチは参加者ごとに新規 TLS 接続を張っては閉じる。既定のポート範囲 (約 2.8 万) だと TIME_WAIT で枯渇して
+  # connect: cannot assign requested address になる（サーバーが速くなると 35 秒で発生）
+  printf "net.ipv4.ip_local_port_range = 1024 65535\nnet.ipv4.tcp_tw_reuse = 1\n" | sudo tee /etc/sysctl.d/99-bench.conf >/dev/null; sudo sysctl --system >/dev/null 2>&1; sysctl net.ipv4.ip_local_port_range net.ipv4.tcp_tw_reuse' &
 wait

@@ -1,0 +1,4 @@
+commit: 4cc3f7c (bench: FAIL ベンチ機のエフェメラルポート枯渇 (cannot assign requested address)。サーバーは isu1 95% / isu2,3 78%)
+dirty: 1
+nodes: 1 2 3
+note: ベンチ機 port_range/tw_reuse 拡張 + pprof(isu2)

@@ -1,0 +1,7 @@
+    754 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/player/competition/:competition_id/ranking: httpN: stream closed"}
+     60 N/N/N N:N:N http: TLS handshake error from N.N.N.N:N: EOF
+      8 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/organizer/players: httpN: stream closed"}
+      8 {"time":"N-N-NTN:N:N.NZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/player/competition/:competition_id/ranking: httpN: stream closed"}
+      5 N/N/N N:N:N http: TLS handshake error from N.N.N.N:N: read tcp N.N.N.N:N->N.N.N.N:N: read: connection reset by peer
+      2 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/organizer/players/add: httpN: stream closed"}
+      1 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/organizer/billing: httpN: stream closed"}

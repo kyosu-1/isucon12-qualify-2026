@@ -1,0 +1,8 @@
+isuports                  155.6
+pidstat                     0.4
+rcu_sched                   0.1
+kworker/u4:2-writeback      0.1
+ksoftirqd/0                 0.1
+systemd-journal             0.0
+rsyslogd                    0.0
+polkitd                     0.0
