@@ -254,7 +254,7 @@ func Run() {
 			}
 			_, viaOpenSSL := cert.PrivateKey.(*opensslSigner)
 			fmt.Printf("TLS listening on %s (openssl signer: %v)\n", tlsAddr, viaOpenSSL)
-			srv := &http.Server{Addr: tlsAddr, Handler: frontHandler(e), TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert}}}
+			srv := &http.Server{Addr: tlsAddr, Handler: frontHandler(e), TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert}, DynamicRecordSizingDisabled: true}}
 			e.Logger.Fatal(srv.ListenAndServeTLS("", ""))
 		}()
 	}
