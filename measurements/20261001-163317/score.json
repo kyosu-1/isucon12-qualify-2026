@@ -1,0 +1,34 @@
+{
+ "pass": true,
+ "score": 229415,
+ "plus": 257769,
+ "minus": -28354,
+ "errors": "11(crit 0)",
+ "messages": [
+  "5x error: 大会内のランキング取得 Get \"https://eahk-cjh-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:eahk-cjh-X role:player playerID:X competitionID:X rankAfter:",
+  "5x error: 大会内のランキング取得 Get \"https://pg-uclr-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:pg-uclr-X role:player playerID:X competitionID:X rankAfter:",
+  "5x ERROR load: load-validation: Get \"https://eahk-cjh-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:eahk-cjh-X role:player playerID:X competitionID:X rankAfter:",
+  "5x ERROR load: load-validation: Get \"https://pg-uclr-X.t.isucon.local/api/player/competition/X/ranking\": dial tcp N.N.N.N:N: i/o timeout tenant:pg-uclr-X role:player playerID:X competitionID:X rankAfter:",
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: テナント内の大会情報取得 Get \"https://eahk-cjh-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:eahk-cjh-X role:player playerID:X",
+  "1x ERROR load: load-validation: Get \"https://eahk-cjh-X.t.isucon.local/api/player/competitions\": dial tcp N.N.N.N:N: i/o timeout tenant:eahk-cjh-X role:player playerID:X",
+  "1x Error N (Critical:N)"
+ ],
+ "table": {
+  "GET admin/tenants/billing": 1315,
+  "GET organizer/billing": 1243,
+  "GET organizer/players/list": 1340,
+  "GET player/competition/:c/ranking": 57699,
+  "GET player/competitions": 7765,
+  "GET player/player/:player_name": 135701,
+  "POST admin/tenants/add": 83,
+  "POST organizer/competition/:c/finish": 1267,
+  "POST organizer/competition/:c/score": 1341,
+  "POST organizer/competitions/add": 1345,
+  "POST organizer/player/:player_name/disqualified": 9,
+  "POST organizer/players/add": 115
+ },
+ "workers": ""
+}

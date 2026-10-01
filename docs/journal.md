@@ -31,3 +31,8 @@ isu1〜3 = 競技ノード（c5.large 2vCPU/3.6GB）、node4 = ベンチ機（�
 nginx `hash $host consistent` でテナントごとに担当ノードを固定、MySQL は isu1。initialize は peers に伝播。
 結果: 259,537 / 258,491。サーバー側は isu1 52%・isu2/3 15% とガラ空きだがスコアは動かない = **ベンチ機が律速**。
 接続は 14,616 本・TLS 再利用 0・全部 HTTP/2（参加者ごとに新規接続）。
+
+### 16:33 再起動試験（3 台 reboot → ベンチ）
+`make restart-test`: 全サービス enabled/active、再起動後も前回ベンチのテナントが残っている（tenant 186 行）。
+結果 229,415（pass、エラー 11）。エラーは全部ベンチ側の `dial tcp ...:443: i/o timeout` が同時刻に 11 件。
+isu1 の ListenOverflows/ListenDrops は 0、ベンチ機の TCPSynRetrans も 0 → サーバーが落としたのではなく、busy 94% のベンチ機自身の取りこぼしと判断。

@@ -1,0 +1,4 @@
+commit: b4809b1 (docs: CLAUDE.md / SKILL.md / journal、restart-test)
+dirty: 0
+nodes: 1 2 3
+note: 再起動試験 (3台 reboot 後)

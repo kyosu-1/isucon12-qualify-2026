@@ -1,0 +1,8 @@
+isuports                   16.8
+pidstat                     0.3
+systemd-journal             0.0
+systemd                     0.0
+snapd                       0.0
+kworker/u4:3-events_power_efficient    0.0
+kworker/u4:2-events_unbound    0.0
+ksoftirqd/1                 0.0

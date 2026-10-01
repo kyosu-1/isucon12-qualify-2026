@@ -1,0 +1,8 @@
+isuports                   10.9
+pidstat                     0.3
+landscape-sysin             0.1
+systemd-journal             0.0
+systemd                     0.0
+sshd                        0.0
+snapd                       0.0
+kworker/u4:5-ext4-rsv-conversion    0.0
