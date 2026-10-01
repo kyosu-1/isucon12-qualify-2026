@@ -1,0 +1,4 @@
+commit: 896fe45 (TLS: DynamicRecordSizingDisabled（接続初期のレコードを MSS サイズに刻まない）)
+dirty: 0
+nodes: 1 2 3
+note: TLS DynamicRecordSizingDisabled

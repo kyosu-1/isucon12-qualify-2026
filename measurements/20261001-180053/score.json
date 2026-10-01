@@ -1,0 +1,41 @@
+{
+ "pass": true,
+ "score": 975415,
+ "plus": 975415,
+ "minus": 0,
+ "errors": "0(crit 0)",
+ "messages": [
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: テナントのプレイヤー一覧取得 JSONのdecodeに失敗しました GET /api/organizer/players status N tenant:intjg-im-X role:organizer playerID:organizer",
+  "1x error: テナントのプレイヤー一覧取得 JSONのdecodeに失敗しました GET /api/organizer/players status N tenant:wizqj-ra-X role:organizer playerID:organizer",
+  "1x error: テナントのプレイヤー一覧取得 JSONのdecodeに失敗しました GET /api/organizer/players status N tenant:isucon role:organizer playerID:organizer",
+  "1x Error N (Critical:N)",
+  "1x                      \"count: N (error: N)\",",
+  "1x              \"count: N (error: N)\",",
+  "1x                \"count: N (error: N)\",",
+  "1x           \"count: N (error: N)\",",
+  "1x            \"count: N (error: N)\",",
+  "1x \"count: N (error: N)\",",
+  "1x                            \"count: N (error: N)\",",
+  "1x                 \"count: N (error: N)\",",
+  "1x                    \"count: N (error: N)\",",
+  "1x             \"count: N (error: N)\","
+ ],
+ "table": {
+  "GET admin/tenants/billing": 6334,
+  "GET organizer/billing": 4598,
+  "GET organizer/players/list": 4852,
+  "GET player/competition/:c/ranking": 218735,
+  "GET player/competitions": 28597,
+  "GET player/player/:player_name": 521995,
+  "POST admin/tenants/add": 257,
+  "POST organizer/competition/:c/finish": 4645,
+  "POST organizer/competition/:c/score": 4840,
+  "POST organizer/competitions/add": 4849,
+  "POST organizer/player/:player_name/disqualified": 12,
+  "POST organizer/players/add": 300
+ },
+ "workers": ""
+}
