@@ -70,6 +70,12 @@ type playerT struct {
 	cache atomic.Pointer[playerCache]
 }
 
+type visitRec struct {
+	compID    string
+	playerID  string
+	createdAt int64
+}
+
 type playerCache struct {
 	ver  int64
 	body []byte
@@ -111,6 +117,11 @@ type tenantT struct {
 	loadErr  error
 	reqs     int64 // 計測用: このテナントへのリクエスト数
 	scoreVer int64 // スコア入稿のたびに増える（mu で保護）
+
+	// 閲覧履歴の SQLite 書き込みは非同期にまとめて行う（メモリの visitors が正。ranking のレスポンスを待たせない）
+	visitCh   chan visitRec
+	visitDone chan struct{}
+	closed    bool // mu で保護。true になったら visitCh に送らない
 
 	mu sync.RWMutex
 	id int64
@@ -167,6 +178,12 @@ func resetTenants() {
 	defer tenantsMu.Unlock()
 	for _, t := range tenants {
 		t.mu.Lock()
+		t.closed = true
+		if t.visitCh != nil {
+			close(t.visitCh)
+			<-t.visitDone // 残りの閲覧履歴を書き切るまで待つ
+			t.visitCh = nil
+		}
 		if t.db != nil {
 			t.db.Close()
 		}
@@ -276,7 +293,45 @@ func (t *tenantT) load() error {
 	for _, c := range t.compList {
 		t.rebuildRanks(c)
 	}
+	t.visitCh = make(chan visitRec, 8192)
+	t.visitDone = make(chan struct{})
+	go t.visitWriter(t.visitCh, t.visitDone, db)
 	return nil
+}
+
+// 閲覧履歴をまとめて SQLite に書く。チャネルが閉じられたら残りを書いて終わる
+func (t *tenantT) visitWriter(ch chan visitRec, done chan struct{}, db *sql.DB) {
+	defer close(done)
+	batch := make([]visitRec, 0, 256)
+	for first := range ch {
+		batch = append(batch[:0], first)
+	drain:
+		for len(batch) < 2000 {
+			select {
+			case r, ok := <-ch:
+				if !ok {
+					break drain
+				}
+				batch = append(batch, r)
+			default:
+				break drain
+			}
+		}
+		tx, err := db.Begin()
+		if err != nil {
+			continue
+		}
+		st, err := tx.Prepare("INSERT INTO visit_history (competition_id, player_id, created_at) VALUES (?, ?, ?)")
+		if err != nil {
+			tx.Rollback()
+			continue
+		}
+		for _, r := range batch {
+			st.Exec(r.compID, r.playerID, r.createdAt)
+		}
+		st.Close()
+		tx.Commit()
+	}
 }
 
 // ランキングを作り直す（score 降順、同点は row_num 昇順）

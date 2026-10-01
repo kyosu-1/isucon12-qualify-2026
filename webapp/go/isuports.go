@@ -11,6 +11,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
 	"reflect"
 	"regexp"
 	"sort"
@@ -18,6 +19,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -228,6 +230,15 @@ func Run() {
 	}
 
 	go func() { _ = http.ListenAndServe("127.0.0.1:6060", nil) }()
+
+	// 停止時に未書き込みの閲覧履歴を書き切る
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
+		<-sig
+		resetTenants()
+		os.Exit(0)
+	}()
 
 	// TLS を直接終端する入口（isu1 の nginx stream から SNI ハッシュで振られてくる）
 	if tlsAddr := getEnv("ISUCON_TLS_ADDR", ""); tlsAddr != "" {
@@ -1201,14 +1212,8 @@ func competitionRankingHandler(c echo.Context) error {
 			comp.visitors[v.playerID] = struct{}{}
 		}
 		comp.visitMu.Unlock()
-		if !seen {
-			if _, err := t.db.Exec(
-				"INSERT INTO visit_history (competition_id, player_id, created_at) VALUES (?, ?, ?)",
-				competitionID, v.playerID, time.Now().Unix(),
-			); err != nil {
-				t.mu.RUnlock()
-				return fmt.Errorf("error Insert visit_history: playerID=%s, competitionID=%s, %w", v.playerID, competitionID, err)
-			}
+		if !seen && !t.closed {
+			t.visitCh <- visitRec{competitionID, v.playerID, time.Now().Unix()}
 		}
 	}
 
