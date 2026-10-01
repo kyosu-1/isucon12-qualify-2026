@@ -59,3 +59,11 @@ make restart-test
 ```
 
 記録: `scores/log.md`（全ベンチ）、`measurements/<ts>/`（生データ）、`docs/journal.md`（時系列）、`.claude/skills/tuning-isucon12q/SKILL.md`（判断基準）。
+
+## ライセンス
+
+MIT License（[LICENSE](LICENSE)）。
+
+`webapp/`（Go 実装・SQL・`specification.md`・`public.pem`）と `docs/reference/specification.md` は
+[isucon/isucon12-qualify](https://github.com/isucon/isucon12-qualify)（MIT License, Copyright (c) 2022 ISUCON）を元に改変したものです。
+`etc/` 以下の設定ファイルは [matsuu/aws-isucon](https://github.com/matsuu/aws-isucon) の AMI から取り込んだものを元にしています。
