@@ -1,0 +1,4 @@
+commit: 0398888 (docs: journal 17:25〜18:50)
+dirty: 0
+nodes: 1 2 3
+note: 再起動試験 (isu1 専任 + 非同期書き込み構成)
