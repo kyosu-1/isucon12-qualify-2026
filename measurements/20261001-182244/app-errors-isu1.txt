@@ -1,0 +1,5 @@
+     57 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/player/competition/:competition_id/ranking: write tcp N.N.N.N:N->N.N.N.N:N: write: connection reset by peer"}
+     43 N/N/N N:N:N http: TLS handshake error from N.N.N.N:N: read tcp N.N.N.N:N->N.N.N.N:N: read: connection reset by peer
+     26 N/N/N N:N:N http: TLS handshake error from N.N.N.N:N: EOF
+     10 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/player/competition/:competition_id/ranking: write tcp N.N.N.N:N->N.N.N.N:N: write: broken pipe"}
+      1 {"time":"N-N-NTN:N:N.NZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/player/competition/:competition_id/ranking: write tcp N.N.N.N:N->N.N.N.N:N: write: connection reset by peer"}

@@ -335,3 +335,104 @@ func (t *tenantT) writer(ch chan writeJob, done chan struct{}, db *sql.DB) {
 		}
 	}
 }
+
+// ランキングを作り直す（score 降順、同点は row_num 昇順）
+func (t *tenantT) rebuildRanks(c *compT) {
+	type rk struct {
+		score, rowNum int64
+		p             *playerT
+		pid           string
+	}
+	ranks := make([]rk, 0, len(c.scores))
+	for pid, s := range c.scores {
+		ranks = append(ranks, rk{score: s.Score, rowNum: s.RowNum, p: t.players[pid], pid: pid})
+	}
+	sort.Slice(ranks, func(i, j int) bool {
+		if ranks[i].score == ranks[j].score {
+			return ranks[i].rowNum < ranks[j].rowNum
+		}
+		return ranks[i].score > ranks[j].score
+	})
+	buf := make([]byte, 0, len(ranks)*96)
+	off := make([]int32, 0, len(ranks)+1)
+	for i, r := range ranks {
+		off = append(off, int32(len(buf)))
+		buf = append(buf, `{"rank":`...)
+		buf = strconv.AppendInt(buf, int64(i+1), 10)
+		buf = append(buf, `,"score":`...)
+		buf = strconv.AppendInt(buf, r.score, 10)
+		buf = append(buf, `,"player_id":`...)
+		if r.p != nil {
+			buf = append(buf, r.p.idJSON...)
+			buf = append(buf, `,"player_display_name":`...)
+			buf = append(buf, r.p.nameJSON...)
+		} else {
+			buf = append(buf, jsonStr(r.pid)...)
+			buf = append(buf, `,"player_display_name":""`...)
+		}
+		buf = append(buf, '}', ',')
+	}
+	off = append(off, int32(len(buf)))
+	c.rankBuf, c.rankOff = buf, off
+}
+
+func (t *tenantT) compsDesc() []*compT {
+	if d := t.compDesc; d != nil {
+		return d
+	}
+	d := make([]*compT, len(t.compList))
+	copy(d, t.compList)
+	sort.SliceStable(d, func(i, j int) bool { return d[i].CreatedAt > d[j].CreatedAt })
+	t.compDesc = d
+	return d
+}
+
+func (t *tenantT) playersDesc() []*playerT {
+	if d := t.playerDesc; d != nil {
+		return d
+	}
+	d := make([]*playerT, len(t.playerList))
+	copy(d, t.playerList)
+	sort.SliceStable(d, func(i, j int) bool { return d[i].CreatedAt > d[j].CreatedAt })
+	t.playerDesc = d
+	return d
+}
+
+func (c *compT) report() BillingReport {
+	r := BillingReport{CompetitionID: c.ID, CompetitionTitle: c.Title}
+	if c.Finished {
+		r.PlayerCount = c.playerCount
+		r.VisitorCount = c.visitorCount
+		r.BillingPlayerYen = 100 * c.playerCount
+		r.BillingVisitorYen = 10 * c.visitorCount
+		r.BillingYen = r.BillingPlayerYen + r.BillingVisitorYen
+	}
+	return r
+}
+
+// initial_data_v2 を tenant_db にコピーする（initialize 用）
+func restoreTenantDBs() error {
+	dir := tenantDBDir()
+	old, _ := filepath.Glob(filepath.Join(dir, "*.db*"))
+	for _, f := range old {
+		os.Remove(f)
+	}
+	src := getEnv("ISUCON_INITIAL_DATA_DIR", "../../initial_data_v2")
+	files, err := filepath.Glob(filepath.Join(src, "*.db"))
+	if err != nil {
+		return err
+	}
+	if len(files) == 0 {
+		return fmt.Errorf("no initial data in %s (run: isuports migrate)", src)
+	}
+	for _, f := range files {
+		b, err := os.ReadFile(f)
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(dir, filepath.Base(f)), b, 0644); err != nil {
+			return err
+		}
+	}
+	return nil
+}

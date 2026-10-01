@@ -1,0 +1,4 @@
+commit: 82628fc (SQLite への書き込みを全て非同期キューに（テナントごとに順序を保ってまとめて commit。メモリが正、停止時と initialize で書き切る）)
+dirty: 0
+nodes: 1 2 3
+note: SQLite 書き込みを全て非同期キュー化
