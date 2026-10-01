@@ -1,0 +1,4 @@
+     60 N/N/N N:N:N http: TLS handshake error from N.N.N.N:N: EOF
+     51 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/player/competition/:competition_id/ranking: httpN: stream closed"}
+      5 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/organizer/competition/:competition_id/score: error c.FormFile(scores): multipart: NextPart: stream error: stream ID N; CANCEL"
+      2 {"time":"N-N-NTN:N:N.XZ","level":"ERROR","prefix":"echo","file":"isuports.go","line":"N","message":"error at /api/organizer/players: httpN: stream closed"}

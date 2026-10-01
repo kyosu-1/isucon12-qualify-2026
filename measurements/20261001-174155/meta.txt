@@ -1,0 +1,4 @@
+commit: 023ba67 (bench: 34844 (+871089, エラー 96 = 終了時刻ちょうどの dial i/o timeout))
+dirty: 0
+nodes: 1 2 3
+note: 同一コード再計測（終了時 dial timeout の再現性確認）+ ベンチ機の接続数採取

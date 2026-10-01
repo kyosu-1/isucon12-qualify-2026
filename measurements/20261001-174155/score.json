@@ -1,0 +1,39 @@
+{
+ "pass": true,
+ "score": 875796,
+ "plus": 875796,
+ "minus": 0,
+ "errors": "0(crit 0)",
+ "messages": [
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:wgxgj-fye-X role:player playerID:X competitionID:X rankAfter:",
+  "1x Error N (Critical:N)",
+  "1x                      \"count: N (error: N)\",",
+  "1x              \"count: N (error: N)\",",
+  "1x                \"count: N (error: N)\",",
+  "1x           \"count: N (error: N)\",",
+  "1x            \"count: N (error: N)\",",
+  "1x \"count: N (error: N)\",",
+  "1x                            \"count: N (error: N)\",",
+  "1x                 \"count: N (error: N)\",",
+  "1x                    \"count: N (error: N)\",",
+  "1x             \"count: N (error: N)\","
+ ],
+ "table": {
+  "GET admin/tenants/billing": 6641,
+  "GET organizer/billing": 4214,
+  "GET organizer/players/list": 4454,
+  "GET player/competition/:c/ranking": 195855,
+  "GET player/competitions": 26407,
+  "GET player/player/:player_name": 463203,
+  "POST admin/tenants/add": 265,
+  "POST organizer/competition/:c/finish": 4249,
+  "POST organizer/competition/:c/score": 4433,
+  "POST organizer/competitions/add": 4452,
+  "POST organizer/player/:player_name/disqualified": 6,
+  "POST organizer/players/add": 310
+ },
+ "workers": ""
+}
