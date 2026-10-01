@@ -214,6 +214,7 @@ type Viewer struct {
 }
 
 type tokenClaims struct {
+	raw  string
 	sub  string
 	role string
 	aud  string
@@ -222,12 +223,16 @@ type tokenClaims struct {
 
 // JWT を検証して claims を返す。検証済みトークンはキャッシュする（RSA 検証を毎回やらない）
 func verifyToken(tokenStr string) (*tokenClaims, error) {
-	if v, ok := tokenCache.Load(tokenStr); ok {
+	// トークンは 500 バイト超ある。キーは署名の末尾 32 文字にして、全体はヒット後に比較する
+	key := tokenStr
+	if len(key) > 32 {
+		key = key[len(key)-32:]
+	}
+	if v, ok := tokenCache.Load(key); ok {
 		tc := v.(*tokenClaims)
-		if tc.exp.IsZero() || time.Now().Before(tc.exp) {
+		if tc.raw == tokenStr && (tc.exp.IsZero() || time.Now().Before(tc.exp)) {
 			return tc, nil
 		}
-		tokenCache.Delete(tokenStr)
 	}
 	token, err := jwt.Parse(
 		[]byte(tokenStr),
@@ -255,8 +260,8 @@ func verifyToken(tokenStr string) (*tokenClaims, error) {
 	if len(aud) != 1 {
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "invalid token: aud field is few or too much")
 	}
-	tc := &tokenClaims{sub: token.Subject(), role: role, aud: aud[0], exp: token.Expiration()}
-	tokenCache.Store(tokenStr, tc)
+	tc := &tokenClaims{raw: tokenStr, sub: token.Subject(), role: role, aud: aud[0], exp: token.Expiration()}
+	tokenCache.Store(key, tc)
 	return tc, nil
 }
 
@@ -594,7 +599,7 @@ func playersAddHandler(c echo.Context) error {
 		); err != nil {
 			return fmt.Errorf("error Insert player at tenantDB: id=%s, %w", id, err)
 		}
-		added = append(added, &playerT{ID: id, DisplayName: displayName, CreatedAt: now})
+		added = append(added, newPlayer(id, displayName, false, now))
 		pds = append(pds, PlayerDetail{
 			ID:             id,
 			DisplayName:    displayName,
@@ -702,7 +707,7 @@ func competitionsAddHandler(c echo.Context) error {
 	); err != nil {
 		return fmt.Errorf("error Insert competition: id=%s, tenant_id=%d, %w", id, v.tenantID, err)
 	}
-	comp := &compT{ID: id, Title: title, CreatedAt: now, scores: map[string]scoreT{}, visitors: map[string]struct{}{}}
+	comp := &compT{ID: id, Title: title, CreatedAt: now, idJSON: jsonStr(id), titleJSON: jsonStr(title), scores: map[string]scoreT{}, visitors: map[string]struct{}{}}
 	t.comps[id] = comp
 	t.compList = append(t.compList, comp)
 	t.compDesc = nil
@@ -1007,30 +1012,34 @@ func playerHandler(c echo.Context) error {
 		t.mu.RUnlock()
 		return echo.NewHTTPError(http.StatusNotFound, "player not found")
 	}
-	psds := make([]PlayerScoreDetail, 0, len(t.compList))
+	bp := bufPool.Get().(*[]byte)
+	buf := (*bp)[:0]
+	buf = append(buf, `{"status":true,"data":{"player":{"id":`...)
+	buf = append(buf, p.idJSON...)
+	buf = append(buf, `,"display_name":`...)
+	buf = append(buf, p.nameJSON...)
+	if p.Disq {
+		buf = append(buf, `,"is_disqualified":true},"scores":[`...)
+	} else {
+		buf = append(buf, `,"is_disqualified":false},"scores":[`...)
+	}
+	first := true
 	for _, comp := range t.compList {
 		if s, ok := comp.scores[playerID]; ok {
-			psds = append(psds, PlayerScoreDetail{
-				CompetitionTitle: comp.Title,
-				Score:            s.Score,
-			})
+			if !first {
+				buf = append(buf, ',')
+			}
+			first = false
+			buf = append(buf, `{"competition_title":`...)
+			buf = append(buf, comp.titleJSON...)
+			buf = append(buf, `,"score":`...)
+			buf = strconv.AppendInt(buf, s.Score, 10)
+			buf = append(buf, '}')
 		}
 	}
-	pd := PlayerDetail{
-		ID:             p.ID,
-		DisplayName:    p.DisplayName,
-		IsDisqualified: p.Disq,
-	}
 	t.mu.RUnlock()
-
-	res := SuccessResult{
-		Status: true,
-		Data: PlayerHandlerResult{
-			Player: pd,
-			Scores: psds,
-		},
-	}
-	return c.JSON(http.StatusOK, res)
+	buf = append(buf, `]}}`...)
+	return writeJSONBuf(c, bp, buf)
 }
 
 type CompetitionRank struct {
@@ -1110,34 +1119,44 @@ func competitionRankingHandler(c echo.Context) error {
 		}
 	}
 
-	ranks := comp.ranks // 入稿のたびに新しいスライスに差し替わるので、ロックを外した後も読める
-	cd := CompetitionDetail{
-		ID:         comp.ID,
-		Title:      comp.Title,
-		IsFinished: comp.Finished,
-	}
+	rankBuf, rankOff := comp.rankBuf, comp.rankOff // 入稿のたびに新しいスライスに差し替わるので、ロックを外した後も読める
+	finished := comp.Finished
 	t.mu.RUnlock()
 
+	bp := bufPool.Get().(*[]byte)
+	buf := (*bp)[:0]
+	buf = append(buf, `{"status":true,"data":{"competition":{"id":`...)
+	buf = append(buf, comp.idJSON...)
+	buf = append(buf, `,"title":`...)
+	buf = append(buf, comp.titleJSON...)
+	if finished {
+		buf = append(buf, `,"is_finished":true},"ranks":[`...)
+	} else {
+		buf = append(buf, `,"is_finished":false},"ranks":[`...)
+	}
 	if rankAfter < 0 {
 		rankAfter = 0
 	}
-	pagedRanks := []CompetitionRank{}
-	if rankAfter < int64(len(ranks)) {
+	if n := int64(len(rankOff)) - 1; rankAfter < n {
 		end := rankAfter + 100
-		if end > int64(len(ranks)) {
-			end = int64(len(ranks))
+		if end > n {
+			end = n
 		}
-		pagedRanks = ranks[rankAfter:end]
+		// 各エントリは "{...}," なので、最後のカンマだけ落とす
+		buf = append(buf, rankBuf[rankOff[rankAfter]:rankOff[end]-1]...)
 	}
+	buf = append(buf, `]}}`...)
+	return writeJSONBuf(c, bp, buf)
+}
 
-	res := SuccessResult{
-		Status: true,
-		Data: CompetitionRankingHandlerResult{
-			Competition: cd,
-			Ranks:       pagedRanks,
-		},
-	}
-	return c.JSON(http.StatusOK, res)
+var bufPool = sync.Pool{New: func() any { b := make([]byte, 0, 16<<10); return &b }}
+
+// 手書きで組み立てた JSON を返してバッファをプールに戻す
+func writeJSONBuf(c echo.Context, bp *[]byte, buf []byte) error {
+	err := c.Blob(http.StatusOK, echo.MIMEApplicationJSONCharsetUTF8, buf)
+	*bp = buf
+	bufPool.Put(bp)
+	return err
 }
 
 type CompetitionsHandlerResult struct {
@@ -1191,25 +1210,30 @@ func organizerCompetitionsHandler(c echo.Context) error {
 }
 
 func competitionsHandler(c echo.Context, t *tenantT) error {
+	bp := bufPool.Get().(*[]byte)
+	buf := (*bp)[:0]
+	buf = append(buf, `{"status":true,"data":{"competitions":[`...)
 	t.mu.Lock() // compsDesc がキャッシュを作るので書き込みロック
 	cs := t.compsDesc()
-	cds := make([]CompetitionDetail, 0, len(cs))
-	for _, comp := range cs {
-		cds = append(cds, CompetitionDetail{
-			ID:         comp.ID,
-			Title:      comp.Title,
-			IsFinished: comp.Finished,
-		})
-	}
 	t.mu.Unlock()
-
-	res := SuccessResult{
-		Status: true,
-		Data: CompetitionsHandlerResult{
-			Competitions: cds,
-		},
+	t.mu.RLock()
+	for i, comp := range cs {
+		if i > 0 {
+			buf = append(buf, ',')
+		}
+		buf = append(buf, `{"id":`...)
+		buf = append(buf, comp.idJSON...)
+		buf = append(buf, `,"title":`...)
+		buf = append(buf, comp.titleJSON...)
+		if comp.Finished {
+			buf = append(buf, `,"is_finished":true}`...)
+		} else {
+			buf = append(buf, `,"is_finished":false}`...)
+		}
 	}
-	return c.JSON(http.StatusOK, res)
+	t.mu.RUnlock()
+	buf = append(buf, `]}}`...)
+	return writeJSONBuf(c, bp, buf)
 }
 
 type TenantDetail struct {

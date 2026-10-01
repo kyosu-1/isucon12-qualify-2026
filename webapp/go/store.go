@@ -5,12 +5,20 @@ package isuports
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"sync"
 )
+
+// JSON の文字列リテラル（引用符込み）にしておく。レスポンスは手書きで組み立てる
+func jsonStr(s string) string {
+	b, _ := json.Marshal(s)
+	return string(b)
+}
 
 const tenantSchemaV2 = `
 CREATE TABLE IF NOT EXISTS competition (
@@ -54,6 +62,12 @@ type playerT struct {
 	DisplayName string
 	Disq        bool
 	CreatedAt   int64
+	idJSON      string
+	nameJSON    string
+}
+
+func newPlayer(id, name string, disq bool, createdAt int64) *playerT {
+	return &playerT{ID: id, DisplayName: name, Disq: disq, CreatedAt: createdAt, idJSON: jsonStr(id), nameJSON: jsonStr(name)}
 }
 
 type scoreT struct {
@@ -68,8 +82,13 @@ type compT struct {
 	FinishedAt int64
 	CreatedAt  int64
 
-	scores map[string]scoreT  // player_id -> 最後に CSV に登場したスコア
-	ranks  []CompetitionRank  // ソート済み・Rank 付き。score 入稿時に作り直す
+	idJSON    string
+	titleJSON string
+
+	scores map[string]scoreT // player_id -> 最後に CSV に登場したスコア
+	// ランキングはエントリごとに JSON 化済み（"{...}," の連結）。rankOff[i] が i 番目の先頭。score 入稿時に作り直す
+	rankBuf []byte
+	rankOff []int32
 
 	visitMu  sync.Mutex
 	visitors map[string]struct{} // 開催中に ranking を見た player_id
@@ -166,6 +185,7 @@ func (t *tenantT) load() error {
 			rows.Close()
 			return err
 		}
+		p.idJSON, p.nameJSON = jsonStr(p.ID), jsonStr(p.DisplayName)
 		t.players[p.ID] = p
 		t.playerList = append(t.playerList, p)
 	}
@@ -183,6 +203,7 @@ func (t *tenantT) load() error {
 			return err
 		}
 		c.Finished, c.FinishedAt = fin.Valid, fin.Int64
+		c.idJSON, c.titleJSON = jsonStr(c.ID), jsonStr(c.Title)
 		t.comps[c.ID] = c
 		t.compList = append(t.compList, c)
 	}
@@ -248,24 +269,42 @@ func (t *tenantT) load() error {
 
 // ランキングを作り直す（score 降順、同点は row_num 昇順）
 func (t *tenantT) rebuildRanks(c *compT) {
-	ranks := make([]CompetitionRank, 0, len(c.scores))
+	type rk struct {
+		score, rowNum int64
+		p             *playerT
+		pid           string
+	}
+	ranks := make([]rk, 0, len(c.scores))
 	for pid, s := range c.scores {
-		name := ""
-		if p, ok := t.players[pid]; ok {
-			name = p.DisplayName
-		}
-		ranks = append(ranks, CompetitionRank{Score: s.Score, PlayerID: pid, PlayerDisplayName: name, RowNum: s.RowNum})
+		ranks = append(ranks, rk{score: s.Score, rowNum: s.RowNum, p: t.players[pid], pid: pid})
 	}
 	sort.Slice(ranks, func(i, j int) bool {
-		if ranks[i].Score == ranks[j].Score {
-			return ranks[i].RowNum < ranks[j].RowNum
+		if ranks[i].score == ranks[j].score {
+			return ranks[i].rowNum < ranks[j].rowNum
 		}
-		return ranks[i].Score > ranks[j].Score
+		return ranks[i].score > ranks[j].score
 	})
-	for i := range ranks {
-		ranks[i].Rank = int64(i + 1)
+	buf := make([]byte, 0, len(ranks)*96)
+	off := make([]int32, 0, len(ranks)+1)
+	for i, r := range ranks {
+		off = append(off, int32(len(buf)))
+		buf = append(buf, `{"rank":`...)
+		buf = strconv.AppendInt(buf, int64(i+1), 10)
+		buf = append(buf, `,"score":`...)
+		buf = strconv.AppendInt(buf, r.score, 10)
+		buf = append(buf, `,"player_id":`...)
+		if r.p != nil {
+			buf = append(buf, r.p.idJSON...)
+			buf = append(buf, `,"player_display_name":`...)
+			buf = append(buf, r.p.nameJSON...)
+		} else {
+			buf = append(buf, jsonStr(r.pid)...)
+			buf = append(buf, `,"player_display_name":""`...)
+		}
+		buf = append(buf, '}', ',')
 	}
-	c.ranks = ranks
+	off = append(off, int32(len(buf)))
+	c.rankBuf, c.rankOff = buf, off
 }
 
 func (t *tenantT) compsDesc() []*compT {
