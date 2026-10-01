@@ -1,0 +1,6 @@
+   22920  avg    0.553ms  max      10.9ms  /api/admin/tenants/billing
+     598  avg    0.000ms  max       0.0ms  TLS handshake (件数のみ)
+     578  avg    0.457ms  max      12.9ms  /api/admin/tenants/add
+       1  avg    0.022ms  max       0.0ms  /api/me
+       1  avg 4523.627ms  max    4523.6ms  /initialize
+       1  avg    0.040ms  max       0.0ms  /internal/stats

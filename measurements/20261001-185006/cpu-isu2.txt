@@ -1,0 +1,8 @@
+isuports                  161.8
+pidstat                     0.4
+rcu_sched                   0.1
+kworker/u4:4-ext4-rsv-conversion    0.1
+kworker/u4:3-events_unbound    0.1
+kswapd0                     0.1
+ksoftirqd/1                 0.1
+ksoftirqd/0                 0.1

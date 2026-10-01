@@ -1,0 +1,4 @@
+commit: 4fcb726 (計測: ベンチ中の isu1:443 同時接続数の最大値と raw スコアを記録)
+dirty: 0
+nodes: 1 2 3
+note: isu1 専任構成の分布確認 (2)
