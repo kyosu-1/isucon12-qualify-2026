@@ -1,0 +1,4 @@
+commit: 8608506 (nginx stream: テナントを 3 台均等に載せる構成を試す（同時接続を 3.2 万未満に保てるか）)
+dirty: 0
+nodes: 1 2 3
+note: 3 台均等 (weight 1:1:1) 3/3

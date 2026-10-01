@@ -1,0 +1,41 @@
+{
+ "pass": true,
+ "score": 1029824,
+ "plus": 1029824,
+ "minus": 0,
+ "errors": "0(crit 0)",
+ "messages": [
+  "2x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:uufi-gnpgpp-X role:player playerID:X competitionID:X rankAfter:",
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:pn-vnuapz-X role:player playerID:X competitionID:X rankAfter:",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:kayac role:player playerID:X competitionID:X rankAfter:",
+  "1x Error N (Critical:N)",
+  "1x                      \"count: N (error: N)\",",
+  "1x              \"count: N (error: N)\",",
+  "1x                \"count: N (error: N)\",",
+  "1x           \"count: N (error: N)\",",
+  "1x            \"count: N (error: N)\",",
+  "1x \"count: N (error: N)\",",
+  "1x                            \"count: N (error: N)\",",
+  "1x                 \"count: N (error: N)\",",
+  "1x                    \"count: N (error: N)\",",
+  "1x             \"count: N (error: N)\","
+ ],
+ "table": {
+  "GET admin/tenants/billing": 9331,
+  "GET organizer/billing": 4986,
+  "GET organizer/players/list": 5298,
+  "GET player/competition/:c/ranking": 230055,
+  "GET player/competitions": 31088,
+  "GET player/player/:player_name": 541491,
+  "POST admin/tenants/add": 329,
+  "POST organizer/competition/:c/finish": 5034,
+  "POST organizer/competition/:c/score": 5258,
+  "POST organizer/competitions/add": 5286,
+  "POST organizer/player/:player_name/disqualified": 11,
+  "POST organizer/players/add": 362
+ },
+ "workers": ""
+}

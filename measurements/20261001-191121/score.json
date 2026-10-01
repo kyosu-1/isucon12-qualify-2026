@@ -1,0 +1,35 @@
+{
+ "pass": true,
+ "score": 1034789,
+ "plus": 1034789,
+ "minus": 0,
+ "errors": "0(crit 0)",
+ "messages": [
+  "2x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:dlfj-sxzjfb-X role:player playerID:X competitionID:X rankAfter:",
+  "2x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:l-hszo-X role:player playerID:X competitionID:X rankAfter:",
+  "1x 整合性チェックを開始します",
+  "1x 整合性チェックを終了します",
+  "1x 整合性チェックに成功しました",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:nqgt-cps-X role:player playerID:X competitionID:X rankAfter:",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:bg-iwo-X role:player playerID:X competitionID:X rankAfter:",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:ewj-fkk-X role:player playerID:X competitionID:X rankAfter:",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:w-ohjp-X role:player playerID:X competitionID:X rankAfter:",
+  "1x error: 大会内のランキング取得 JSONのdecodeに失敗しました GET /api/player/competition/X/ranking status N tenant:lr-efxwe-X role:player playerID:X competitionID:X rankAfter:",
+  "1x Error N (Critical:N)"
+ ],
+ "table": {
+  "GET admin/tenants/billing": 8968,
+  "GET organizer/billing": 4976,
+  "GET organizer/players/list": 5292,
+  "GET player/competition/:c/ranking": 231189,
+  "GET player/competitions": 30963,
+  "GET player/player/:player_name": 546499,
+  "POST admin/tenants/add": 321,
+  "POST organizer/competition/:c/finish": 5017,
+  "POST organizer/competition/:c/score": 5249,
+  "POST organizer/competitions/add": 5270,
+  "POST organizer/player/:player_name/disqualified": 8,
+  "POST organizer/players/add": 354
+ },
+ "workers": ""
+}
