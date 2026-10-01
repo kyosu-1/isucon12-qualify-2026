@@ -1,0 +1,4 @@
+commit: 049c6ac (isu1 の TCP メモリ圧迫を解消: nginx stream のバッファ縮小 (preread 4k / proxy 8k)、tcp_mem 拡張、ソケットバッファ上限 1MB)
+dirty: 0
+nodes: 1 2 3
+note: isu1 TCP メモリ圧迫対策 (nginx バッファ縮小 + tcp_mem)
