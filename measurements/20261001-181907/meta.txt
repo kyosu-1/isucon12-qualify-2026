@@ -1,0 +1,4 @@
+commit: 1f01d67 (計測: TLS ハンドシェイク数)
+dirty: 0
+nodes: 1 2 3
+note: HTTP/1.1 再計測 + ハンドシェイク数
