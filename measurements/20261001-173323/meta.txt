@@ -1,0 +1,4 @@
+commit: 580fdb7 (nginx: default サイトの 443 listen を外す（stream の 443 と衝突して起動失敗した）)
+dirty: 0
+nodes: 1 2 3
+note: TLS 直終端 (nginx stream SNI hash → 3台 :8443)

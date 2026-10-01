@@ -1,0 +1,8 @@
+isuports                   82.9
+nginx                      28.3
+mysqld                     10.4
+pidstat                     0.4
+ksoftirqd/1                 0.3
+ksoftirqd/0                 0.3
+jbd2/nvme0n1p1-8            0.2
+systemd-journal             0.1
